@@ -2,7 +2,7 @@
 
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
-#define sampleAmount 15
+#define sampleAmount 7 // BAS - What does this affect?
 
 #define parityLocation 9
 #define parityOn 1
@@ -98,7 +98,7 @@ void setup()
 
   TIMSK1 |= (1 << OCIE1A); // Enable timer compare interrupt
 
-  // sei(); // Allow interrupts
+  sei(); // Allow interrupts
 
   Serial.begin(9600);
 }

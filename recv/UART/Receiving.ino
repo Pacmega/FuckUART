@@ -40,7 +40,7 @@ void UARTreceive()
 
     case fillingBuffer:
       // fill buffer
-      
+
       receivedByteBuffer[bytePlace][samplePlace] = tempBit;
       samplePlace++;
 
@@ -143,6 +143,7 @@ bool checkStartBit()
 
   samplePlace = 0;
 
+  // BAS - Why is there a ! here? (didn't check yet)
   return !checkMajority(startBitBuffer); // If checkmajority returns 0, startbit has been found and true will be returned.
 
 }

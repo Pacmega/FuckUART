@@ -2,7 +2,7 @@
 
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
-#define sampleAmount 8
+#define sampleAmount 7 // BAS - what does this affect in send?
 
 #define parityLocation 9
 #define parityOn 1
