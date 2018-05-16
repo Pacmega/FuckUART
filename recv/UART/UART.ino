@@ -3,6 +3,7 @@
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
 #define sampleAmount 7 // BAS - What does this affect?
+                       // Joran: Affects InterruptFreq, a few buffers, amoundOfSamplesUsed, startOfSamplesInBuffer
 
 #define parityLocation 9
 #define parityOn 1

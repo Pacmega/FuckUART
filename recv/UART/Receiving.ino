@@ -22,11 +22,14 @@ void UARTreceive()
       }
       else
       {
+        samplePlace = 0;
         // BAS - samplePlace = 0; missing?
+        // Joran: added
         // Buffer filled
         if (checkStartBit())
         {
           // startbit found
+          
           receiveSwitch = fillingBuffer;
           // start reading data
         }
