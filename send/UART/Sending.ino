@@ -1,6 +1,46 @@
-// heck
+// Working send
 
 #define sizeOfSerializedByte 12
+
+void UARTsend()
+{
+  if (sending)
+  {
+    if (messageSize > currentBit)
+    {
+      if (ReceivedBitSample == sampleAmount - 1) // MagicNumber.exe
+      {
+        if (serializedByte[currentBit] == HIGH)
+        {
+          // Set pin 13 to HIGH (1)
+          digitalWrite(sendPin, HIGH);
+        }
+        else
+        {
+          // Set pin 13 to LOW (0)
+          digitalWrite(sendPin, LOW);
+        }
+        currentBit++;
+        ReceivedBitSample = 0;
+      }
+      else
+      {
+        ReceivedBitSample++;
+      }
+    }
+    else
+    {
+      sending = false;
+      currentBit = 0;
+      ReceivedBitSample = 0;
+    }
+  }
+  else
+  {
+    // Idle: set pin 13 to HIGH (1)
+    digitalWrite(sendPin, HIGH);
+  }
+}
 
 int countOnes(unsigned char itemToCount)
 {

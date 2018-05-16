@@ -1,4 +1,4 @@
-// heck
+// disfunctional crap
 
 bool CheckForStartbit()
 {
