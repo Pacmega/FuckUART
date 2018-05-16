@@ -1,3 +1,5 @@
+// RecieveInProgress, Send working but commented in ISR
+
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
 #define sampleAmount 15

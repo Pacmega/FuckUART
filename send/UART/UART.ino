@@ -1,4 +1,4 @@
-// Send working
+// Send working, receive broken
 
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
