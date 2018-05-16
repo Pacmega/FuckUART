@@ -1,17 +1,22 @@
-// BIEP BOEP
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
-#define sampleAmount 8
+#define sampleAmount 15
 
 #define parityLocation 9
 #define parityOn 1
 #define parityOff 0
 
-enum receiveStates {
+enum receiveBitStates {
   waitingForStartBit,
   readingStartBit,
-  readingData,
-  flushing
+  fillingBuffer
+};
+
+enum digestBitsStates {
+  checkingMajority,
+  checkingParity,
+  deserializing,
+  readyForReading
 };
 
 enum specialBits {
@@ -34,12 +39,8 @@ enum stopBitsEnum {
 const unsigned int sendPin = 13;
 const unsigned int recvPin = 3;
 
-bool sending = false;
 bool received = false;  // Did we receive something to analyse & decode?
 bool flushRecvBuffer = false; // Flushing the buffer?
-
-int currentBit = 0;
-int ReceivedBitSample = 0;
 
 // Settings
 const unsigned int bitRate = 9600; // (bitRate must be >= 1 and < 65536)
@@ -48,11 +49,9 @@ const unsigned int stopBits = oneStopbit;
 
 long interruptFreq = 16000000 / bitRate / sampleAmount;
 
-unsigned char serializedByte[sizeOfSerializedByte];
-unsigned char startBitBuffer[sampleAmount];
-unsigned char receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
+int startBitBuffer[sampleAmount];
+int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
 bool byteBufferFilled = false;
-unsigned char bufferByte = '\0';
 
 int bytePlace = 0;
 int samplePlace = 0;
@@ -60,7 +59,8 @@ int tempBit;
 int ReceivedByte;
 
 int receiveSwitch = 0;
-int messageSize = 0;
+int digestSwitch = -1;
+int extraBits;
 
 // Used for checking bits
 const int amountOfSamplesUsed = sampleAmount / 4;
@@ -69,10 +69,8 @@ int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
 
 ISR(TIMER1_COMPA_vect) // Interrupt service routine: Timer 1 matches desired count.
 {
-  // The combination of the two appears to be too slow to function.
-  UARTsend();
+  //UARTsend();
   UARTreceive();
-  // Serial.print(digitalRead(13));
 }
 
 void setup()
@@ -89,7 +87,7 @@ void setup()
   TCNT1  = 0; // initialize counter value to 0
 
   // Set compare match register for selected baud rate
-  OCR1A  = interruptFreq;
+  OCR1A  = 16000000 / bitRate;
 
   TCCR1B |= (1 << WGM12); // Turn on Clear Timer on Compare match mode
 
@@ -105,19 +103,21 @@ void setup()
 
 void loop()
 {
-  if (!sending && Serial.available() > 0)
+/*  if (Serial.available() > 0 && !sending)
   {
     bufferByte = Serial.read();
     Sending(bufferByte);
-  }
+  }*/
 
   //byteReading();
+  deserializeCharacter();
   if (received)
   {
     //Serial.print("ReceivedByte ");
     Serial.println(ReceivedByte);
     ReceivedByte = 0;
-    receiveSwitch = flushing;
+    //receiveSwitch = flushing;	
+    received = false;
   }
 }
 

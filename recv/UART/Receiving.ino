@@ -1,12 +1,10 @@
 void UARTreceive()
 {
   tempBit = (int)readBit();
-  int index = 0;
 
-  switch(receiveSwitch)
+  switch (receiveSwitch)
   {
     case waitingForStartBit:
-      // Serial.print("waitingforstartbit \n");
       if (tempBit == 0) // Falling edge
       {
         receiveSwitch = readingStartBit;
@@ -14,7 +12,7 @@ void UARTreceive()
       break;
 
     case readingStartBit:
-      // Serial.print("readingstartbit \n");
+      //Serial.print("readingstartbit \n");
       // Start sampling startbit
       if (samplePlace < sampleAmount)
       {
@@ -28,7 +26,7 @@ void UARTreceive()
         if (checkStartBit())
         {
           // startbit found
-          receiveSwitch = readingData;
+          receiveSwitch = fillingBuffer;
           // start reading data
         }
         else
@@ -39,48 +37,90 @@ void UARTreceive()
       }
       break;
 
-    case readingData:
-      if (byteBufferFilled)
+    case fillingBuffer:
+      // fill buffer
+      receivedByteBuffer[bytePlace][samplePlace] = tempBit;
+      samplePlace++;
+
+      if (samplePlace == sampleAmount && bytePlace == sizeOfReceivedByte)
       {
-        // majority check
-        // parity check
-        // received -> true
-        if (index == sizeOfReceivedByte)
-        {
-          Serial.print(ReceivedByte);
-        }
-        int shift = sizeOfReceivedByte - index;
-        ReceivedByte |= (int)checkMajority(receivedByteBuffer[index]) << shift;
-        index++;
+      	Serial.print("filled the buffer");
+        // buffer filled
+        byteBufferFilled = true;
+        samplePlace = 0;
+        bytePlace = 0;
+        digestSwitch = checkingMajority;
+        receiveSwitch++;
       }
-      else
+
+      if (samplePlace == sampleAmount)
       {
-        
-        // Serial.print("readingdata \n");
-        // fill buffer
-        receivedByteBuffer[bytePlace][samplePlace] = tempBit;
-        samplePlace++;
-
-        if (samplePlace == sampleAmount && bytePlace == sizeOfReceivedByte)
-        {
-          // buffer filled
-          byteBufferFilled = true;
-          samplePlace = 0;
-          bytePlace = 0;
-        }
-
-        if (samplePlace == sampleAmount)
-        {
-          // Sampleplace reached end. Restart on next bytePlace
-          samplePlace = 0;
-          bytePlace++;
-        }
-
+        // Sampleplace reached end. Restart on next bytePlace
+        samplePlace = 0;
+        bytePlace++;
       }
       break;
 
     default:
-    // Don't do anything
+      // Don't do anything
+      break;
+  }
+}
+
+void deserializeCharacter()
+{
+  switch(digestSwitch)
+  {
+    case checkingMajority:
+    	for (int i = 0; i < sizeOfReceivedByte; ++i)
+    	{
+    		ReceivedByte |= (int)checkMajority(receivedByteBuffer[i]) << bytePlace;
+    	}
+
+        bytePlace = 0;
+        receiveSwitch = 0;
+        digestSwitch = checkingParity;
+      break;
+
+    case checkingParity:
+      if (checkParity(ReceivedByte))
+      {
+        // Parity is correct, continue to deserializing
+        receiveSwitch = deserializing;
+      }
+      else
+      {
+        // Parity is incorrect. Notify user and reset
+        Serial.println("Parity error.");
+        digestSwitch = -1;
+      }
+      break;
+
+    case deserializing:
+      // Remove the stopbits and the parity bit if selected
+      extraBits = 1; // There is always 1 stopbit at the end, so that one will always be removed
+      if (parityMode != noParityMode)
+      {
+        extraBits++;
+      }
+
+      if (stopBits == twoStopbits)
+      {
+        extraBits++;
+      }
+      // Remove the bits that are not part of the data
+      ReceivedByte = ReceivedByte >> extraBits;
+      receiveSwitch = readyForReading;
+      break;
+
+    case readyForReading:
+      received = true;
+      digestSwitch++;
+      // Wait for the loop to read the character. Loop will continue the switch.
+      break;
+
+    default:
+      // do nothing
       break;
   }
 }
@@ -89,14 +129,14 @@ bool checkStartBit()
 {
   // This function is only called when the buffer is full and needs to be as small as possible, so don't check.
 
-  int amountOfSamplesUsed = sampleAmount/4;
+  int amountOfSamplesUsed = sampleAmount / 4;
 
   unsigned char usedSamples[amountOfSamplesUsed];
-  int startOfUsedSamplesInBuffer = (sampleAmount/2-(sampleAmount/8));
+  int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
 
   for (int i = 0; i < amountOfSamplesUsed; ++i)
   {
-    usedSamples[i] = startBitBuffer[startOfUsedSamplesInBuffer+i];
+    usedSamples[i] = startBitBuffer[startOfUsedSamplesInBuffer + i];
   }
 
   samplePlace = 0;
@@ -104,7 +144,8 @@ bool checkStartBit()
   return !checkMajority(startBitBuffer); // If checkmajority returns 0, startbit has been found and true will be returned.
 
 }
-bool checkMajority(unsigned char sampleArray[])
+
+bool checkMajority(int sampleArray[])
 {
   int totalOnes = 0;
 
@@ -120,9 +161,12 @@ bool checkMajority(unsigned char sampleArray[])
   return 0;
 }
 
-bool checkParity()
+bool checkParity(unsigned char receivedByte)
 {
-  
+  for (int i = 0; i < sizeof(receivedByte); ++i)
+  {
+  	
+  }
 }
 
 char readBit()
