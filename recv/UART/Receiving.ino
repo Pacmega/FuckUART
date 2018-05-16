@@ -1,6 +1,6 @@
 void UARTreceive()
 {
-  tempBit = (int)readBit();
+  tempBit = (PIND & B00001000) >> 3;
 
   switch (receiveSwitch)
   {
@@ -22,6 +22,7 @@ void UARTreceive()
       }
       else
       {
+        // BAS - samplePlace = 0; missing?
         // Buffer filled
         if (checkStartBit())
         {
@@ -39,6 +40,7 @@ void UARTreceive()
 
     case fillingBuffer:
       // fill buffer
+      
       receivedByteBuffer[bytePlace][samplePlace] = tempBit;
       samplePlace++;
 
@@ -167,16 +169,4 @@ bool checkParity(unsigned char receivedByte)
   {
   	
   }
-}
-
-char readBit()
-{
-  // for debugging purposes:
-  //Serial.println(digitalRead(recvPin));
-  //Serial.println((PORTD & B00001000) >> 3);
-
-  // Serial.println(digitalRead(recvPin));
-  // return 'a';
-  // return (PIND & B00001000) >> 3;
-  return digitalRead(recvPin);
 }

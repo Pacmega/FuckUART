@@ -1,5 +1,6 @@
-// Working send
+// Working send, commented because shit is missing in UART.ino
 
+/*
 #define sizeOfSerializedByte 12
 
 void UARTsend()
@@ -147,4 +148,4 @@ void Sending(unsigned char recvByte)
 
 		sending = true;
 	}
-}
+}*/

@@ -1,5 +1,5 @@
 // disfunctional crap
-
+/*
 bool CheckForStartbit()
 {
   if(Read() == 0)
@@ -82,3 +82,4 @@ char readBit()
   // TODO: Replace magic number by _BV(ALIASofNR)
   return ((PORTD & B00001000) >> 3); // reads register and shifts the bit to the right to return a 1 or 0
 }
+*/

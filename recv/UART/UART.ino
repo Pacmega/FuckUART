@@ -98,18 +98,22 @@ void setup()
 
   TIMSK1 |= (1 << OCIE1A); // Enable timer compare interrupt
 
-  sei(); // Allow interrupts
+  // sei(); // Allow interrupts
 
   Serial.begin(9600);
 }
 
 void loop()
 {
-/*  if (Serial.available() > 0 && !sending)
+  // DBG: PortManipulation version of digitalRead(3);
+  //Serial.println((PIND & B00001000) >> 3);
+  
+  /*
+  if (Serial.available() > 0 && !sending)
   {
     bufferByte = Serial.read();
     Sending(bufferByte);
-  }*/
+  }
 
   //byteReading();
   deserializeCharacter();
@@ -121,6 +125,7 @@ void loop()
     //receiveSwitch = flushing;	
     received = false;
   }
+  */
 }
 
 void clearBuffer(int bufferSize, unsigned char* array)
