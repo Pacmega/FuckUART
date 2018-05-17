@@ -139,12 +139,6 @@ void Sending(unsigned char recvByte)
 		clearBuffer(sizeOfSerializedByte, serializedByte);
 		createPacket(recvByte);
     	
-		// Serial.println();
-		// for (int i = 0; i < messageSize; ++i)
-		// {
-		// 	Serial.println(serializedByte[i]);
-		// }
-
 		sending = true;
 	}
 }
