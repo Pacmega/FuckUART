@@ -88,7 +88,6 @@ void loop()
     bufferByte = Serial.read();
     Sending(bufferByte);
   }
-
 }
 
 void clearBuffer(int bufferSize, unsigned char* array)
