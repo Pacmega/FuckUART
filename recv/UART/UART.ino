@@ -11,6 +11,7 @@
 enum receiveBitStates {
   waitingForStartBit,
   readingStartBit,
+  checkingStartBit,
   fillingBuffer
 };
 
@@ -105,6 +106,25 @@ void setup()
 
 void loop()
 {
+  // Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
+  if (receiveSwitch == checkingStartBit)
+  {
+    if (checkStartBit())
+    {
+      // startbit found
+      
+      receiveSwitch = fillingBuffer;
+      // start reading data
+    }
+    else 
+    {
+      // The falling edge was an error. Reset process
+      receiveSwitch = waitingForStartBit;
+    }
+
+    sei(); // Restart interrupts.
+  }
+
   // DBG: PortManipulation version of digitalRead(3);
   //Serial.println((PIND & B00001000) >> 3);
   

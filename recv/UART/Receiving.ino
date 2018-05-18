@@ -22,33 +22,22 @@ void UARTreceive()
       }
       else
       {
+        // Startbitbuffer filled.
         samplePlace = 0;
-        
-        // Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
-        if (checkStartBit())
-        {
-          // startbit found
-          
-          receiveSwitch = fillingBuffer;
-          // start reading data
-        }
-        else
-        {
-          // The falling edge was an error. Reset process
-          receiveSwitch = waitingForStartBit;
-        }
+        receiveSwitch = checkingStartBit;
+        cli(); // Temporarily kill interrupts so the check (in the main loop, to keep this interrupt from taking too long) will be finished sooner.
       }
       break;
 
     case fillingBuffer:
-      // fill buffer
-
-      receivedByteBuffer[bytePlace][samplePlace] = tempBit;
-      samplePlace++;
-
-      if (samplePlace == sampleAmount && bytePlace == sizeOfReceivedByte)
+      // Serial.print(samplePlace);
+      // Serial.print(" - ");
+      // Serial.print(bytePlace);
+      // Serial.print(" | ");
+      
+      if (samplePlace == sampleAmount - 1 && bytePlace == sizeOfReceivedByte - 1)
       {
-      	Serial.print("filled the buffer");
+      	Serial.print('4');
         // buffer filled
         byteBufferFilled = true;
         samplePlace = 0;
@@ -56,12 +45,16 @@ void UARTreceive()
         digestSwitch = checkingMajority;
         receiveSwitch++;
       }
-
-      if (samplePlace == sampleAmount)
+      else if (samplePlace == sampleAmount)
       {
         // Sampleplace reached end. Restart on next bytePlace
         samplePlace = 0;
         bytePlace++;
+      }
+      else
+      {
+        receivedByteBuffer[bytePlace][samplePlace] = tempBit;
+        samplePlace++;
       }
       break;
 
@@ -73,6 +66,7 @@ void UARTreceive()
 
 void deserializeCharacter()
 {
+  // Does WAY too much. Checking majority and parity in a function called deserialize?
   switch(digestSwitch)
   {
     case checkingMajority:
@@ -131,8 +125,6 @@ void deserializeCharacter()
 
 bool checkStartBit()
 {
-  // This function is only called when the buffer is full and needs to be as small as possible, so don't check.
-
   int amountOfSamplesUsed = sampleAmount / 4;
 
   unsigned char usedSamples[amountOfSamplesUsed];
