@@ -30,14 +30,14 @@ void UARTreceive()
       break;
 
     case fillingBuffer:
-      // fill buffer
-      Serial.print('3');
-      receivedByteBuffer[bytePlace][samplePlace] = tempBit;
-      samplePlace++;
-
-      if (samplePlace == sampleAmount && bytePlace == sizeOfReceivedByte)
+      // Serial.print(samplePlace);
+      // Serial.print(" - ");
+      // Serial.print(bytePlace);
+      // Serial.print(" | ");
+      
+      if (samplePlace == sampleAmount - 1 && bytePlace == sizeOfReceivedByte - 1)
       {
-      	Serial.print("filled the buffer");
+      	Serial.print('4');
         // buffer filled
         byteBufferFilled = true;
         samplePlace = 0;
@@ -45,12 +45,16 @@ void UARTreceive()
         digestSwitch = checkingMajority;
         receiveSwitch++;
       }
-
-      if (samplePlace == sampleAmount)
+      else if (samplePlace == sampleAmount)
       {
         // Sampleplace reached end. Restart on next bytePlace
         samplePlace = 0;
         bytePlace++;
+      }
+      else
+      {
+        receivedByteBuffer[bytePlace][samplePlace] = tempBit;
+        samplePlace++;
       }
       break;
 
@@ -62,6 +66,7 @@ void UARTreceive()
 
 void deserializeCharacter()
 {
+  // Does WAY too much. Checking majority and parity in a function called deserialize?
   switch(digestSwitch)
   {
     case checkingMajority:
