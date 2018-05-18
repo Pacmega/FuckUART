@@ -31,7 +31,7 @@ void UARTreceive()
 
     case fillingBuffer:
       // fill buffer
-
+      Serial.print('3');
       receivedByteBuffer[bytePlace][samplePlace] = tempBit;
       samplePlace++;
 

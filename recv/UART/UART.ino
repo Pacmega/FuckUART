@@ -3,7 +3,6 @@
 #define sizeOfSerializedByte 12
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
 #define sampleAmount 7
-#define 
 
 #define parityLocation 9
 #define parityOn 1
@@ -122,7 +121,7 @@ void loop()
       // The falling edge was an error. Reset process
       receiveSwitch = waitingForStartBit;
     }
-    
+
     sei(); // Restart interrupts.
   }
 
