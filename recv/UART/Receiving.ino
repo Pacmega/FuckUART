@@ -37,13 +37,13 @@ void UARTreceive()
       
       if (samplePlace == sampleAmount - 1 && bytePlace == sizeOfReceivedByte - 1)
       {
-      	Serial.print('4');
-        // buffer filled
+      	// buffer filled
         byteBufferFilled = true;
         samplePlace = 0;
         bytePlace = 0;
-        digestSwitch = checkingMajority;
-        receiveSwitch++;
+        receiveSwitch = checkingData; // Should allow for loop() to take over
+        cli(); // Don't try to receive more while still working on this one.
+        digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas
       }
       else if (samplePlace == sampleAmount)
       {

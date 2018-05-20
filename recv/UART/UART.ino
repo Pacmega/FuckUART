@@ -12,7 +12,9 @@ enum receiveBitStates {
   waitingForStartBit,
   readingStartBit,
   checkingStartBit,
-  fillingBuffer
+  fillingBuffer,
+  checkingData,
+  DBGidle
 };
 
 enum digestBitsStates {
@@ -123,6 +125,29 @@ void loop()
     }
 
     sei(); // Restart interrupts.
+  }
+  else if (receiveSwitch == checkingData)
+  {
+    // DBG
+
+    for(int i = 0; i < sizeOfReceivedByte; i++)
+    {
+      Serial.print("Byte ");
+      Serial.print(i);
+      Serial.print(" - ");
+      for (int o = 0; o < sampleAmount; o++)
+      {
+        Serial.print(receivedByteBuffer[i][o]);
+        Serial.print(" ");
+      }
+      Serial.println("");
+    }
+
+    receiveSwitch = waitingForStartBit;
+
+    // End of DBG
+
+    // Shit
   }
 
   // DBG: PortManipulation version of digitalRead(3);
