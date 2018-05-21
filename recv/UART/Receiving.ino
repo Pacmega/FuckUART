@@ -1,3 +1,19 @@
+void DBG_printBuffer()
+{
+  for(int i = 0; i < sizeOfReceivedByte; i++)
+  {
+    Serial.print("Byte ");
+    Serial.print(i);
+    Serial.print(" - ");
+    for (int o = 0; o < sampleAmount; o++)
+    {
+      Serial.print(receivedByteBuffer[i][o]);
+      Serial.print(" ");
+    }
+    Serial.println("");
+  }
+}
+
 void UARTreceive()
 {
   tempBit = (PIND & B00001000) >> 3;
@@ -7,7 +23,8 @@ void UARTreceive()
     case waitingForStartBit:
       if (tempBit == 0) // Falling edge
       {
-        receiveSwitch = readingStartBit;
+        // Fucking wat
+        receiveSwitch = fillingBuffer;
       }
       break;
 
@@ -43,13 +60,14 @@ void UARTreceive()
         bytePlace = 0;
         receiveSwitch = checkingData; // Should allow for loop() to take over
         cli(); // Don't try to receive more while still working on this one.
-        digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas
+        digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
       }
       else if (samplePlace == sampleAmount)
       {
         // Sampleplace reached end. Restart on next bytePlace
         samplePlace = 0;
         bytePlace++;
+        receivedByteBuffer[bytePlace][samplePlace] = tempBit;
       }
       else
       {
@@ -75,9 +93,9 @@ void deserializeCharacter()
     		ReceivedByte |= (int)checkMajority(receivedByteBuffer[i]) << bytePlace;
     	}
 
-        bytePlace = 0;
-        receiveSwitch = 0;
-        digestSwitch = checkingParity;
+      bytePlace = 0;
+      receiveSwitch = 0;
+      digestSwitch = checkingParity;
       break;
 
     case checkingParity:
@@ -123,44 +141,81 @@ void deserializeCharacter()
   }
 }
 
-bool checkStartBit()
+bool checkStartStopBits()
 {
-  int amountOfSamplesUsed = sampleAmount / 4;
+  // Built around sampleAmount = 7 & samplesUsed = 3, and reading the start bit into the full buffer.
+  
+  unsigned char usedSamples[samplesUsed];
+  usedSamples[0] = receivedByteBuffer[0][3];
+  usedSamples[1] = receivedByteBuffer[0][4];
+  usedSamples[2] = receivedByteBuffer[0][5];
 
-  unsigned char usedSamples[amountOfSamplesUsed];
-  int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
-
-  for (int i = 0; i < amountOfSamplesUsed; ++i)
+  if(!checkMajority(usedSamples)) // If checkmajority returns 0, startbit has been found and true will be returned.
   {
-    usedSamples[i] = startBitBuffer[startOfUsedSamplesInBuffer + i];
+    if(parityMode == noParityMode)
+    {
+      usedSamples[0] = receivedByteBuffer[9][3];
+      usedSamples[1] = receivedByteBuffer[9][4];
+      usedSamples[2] = receivedByteBuffer[9][5];
+      if (checkMajority(usedSamples))
+      {
+        if(stopBits == twoStopbits)
+        {
+          usedSamples[0] = receivedByteBuffer[10][3];
+          usedSamples[1] = receivedByteBuffer[10][4];
+          usedSamples[2] = receivedByteBuffer[10][5];
+          return checkMajority(usedSamples);
+        }
+        else
+        {
+          return true;
+        }
+      }
+    }
+    else
+    {
+      usedSamples[0] = receivedByteBuffer[10][3];
+      usedSamples[1] = receivedByteBuffer[10][4];
+      usedSamples[2] = receivedByteBuffer[10][5];
+      if (checkMajority(usedSamples))
+      {
+        if(stopBits == twoStopbits)
+        {
+          usedSamples[0] = receivedByteBuffer[11][3];
+          usedSamples[1] = receivedByteBuffer[11][4];
+          usedSamples[2] = receivedByteBuffer[11][5];
+          return checkMajority(usedSamples);
+        }
+        else
+        {
+          return true;
+        }
+      }
+    }
   }
+  
+  // No start bit or an incorrect number of stop bits detected, that was a mistake.
+  return false;
+}
 
-  samplePlace = 0;
-
-  return !checkMajority(startBitBuffer); // If checkmajority returns 0, startbit has been found and true will be returned.
-
+bool checkParity()
+{
+  // Empty function
 }
 
 bool checkMajority(int sampleArray[])
 {
+  // Built around sampleAmount = 7 & samplesUsed = 3
   int totalOnes = 0;
 
-  for (int i = 0; i < sampleAmount; ++i)
+  for (int i = 3; i <= 5; ++i)
   {
     totalOnes += sampleArray[i];
   }
 
-  if (totalOnes >= sampleAmount / 2)
+  if (totalOnes >= 2)
   {
     return 1;
   }
   return 0;
-}
-
-bool checkParity(unsigned char receivedByte)
-{
-  for (int i = 0; i < sizeof(receivedByte); ++i)
-  {
-  	
-  }
 }

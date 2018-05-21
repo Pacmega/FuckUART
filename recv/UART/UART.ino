@@ -1,8 +1,8 @@
 // RecieveInProgress, Send working but commented in ISR
 
 #define sizeOfSerializedByte 12
-#define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
 #define sampleAmount 7
+#define samplesUsed 3
 
 #define parityLocation 9
 #define parityOn 1
@@ -63,7 +63,7 @@ int samplePlace = 0;
 int tempBit;
 int ReceivedByte;
 
-int receiveSwitch = 0;
+int receiveSwitch = waitingForStartBit;
 int digestSwitch = -1;
 int extraBits;
 
@@ -71,6 +71,10 @@ int extraBits;
 const int amountOfSamplesUsed = sampleAmount / 4;
 unsigned char usedSamples[amountOfSamplesUsed];
 int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
+
+int sizeOfReceivedByte = 10 // for receiving, the startbit wont be counted into the program.
+// DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
+//      and looking at it after everything's come in, since there is no time before then.
 
 ISR(TIMER1_COMPA_vect) // Interrupt service routine: Timer 1 matches desired count.
 {
@@ -83,6 +87,15 @@ void setup()
   pinMode(sendPin, OUTPUT);
   pinMode(recvPin, INPUT);
 
+  if (parityMode != noParityMode)
+  {
+    sizeOfReceivedByte++;
+  }
+  if (stopBits == twoStopbits)
+  {
+    sizeOfReceivedByte++;
+  }
+
   Serial.begin(9600);
 
   cli(); // To be sure no interrupts top interrupts
@@ -92,7 +105,7 @@ void setup()
   TCNT1  = 0; // initialize counter value to 0
 
   // Set compare match register for selected baud rate
-  OCR1A  = 16000000 / bitRate;
+  OCR1A  = interruptFreq;
 
   TCCR1B |= (1 << WGM12); // Turn on Clear Timer on Compare match mode
 
@@ -128,20 +141,21 @@ void loop()
   }
   else if (receiveSwitch == checkingData)
   {
-    // DBG
-
-    for(int i = 0; i < sizeOfReceivedByte; i++)
+    DBG_printBuffer();
+    if (checkStartStopBits())
     {
-      Serial.print("Byte ");
-      Serial.print(i);
-      Serial.print(" - ");
-      for (int o = 0; o < sampleAmount; o++)
+      Serial.println("Packet detected.");
+      if (checkParity())
       {
-        Serial.print(receivedByteBuffer[i][o]);
-        Serial.print(" ");
+        
       }
-      Serial.println("");
     }
+    else
+    {
+      Serial.println("Incorrect packet detected. Oops.");
+    }
+    
+    clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
 
     receiveSwitch = waitingForStartBit;
 
