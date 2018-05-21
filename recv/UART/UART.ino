@@ -1,5 +1,8 @@
 // RecieveInProgress, Send working but commented in ISR
-// Need to deserialize and checkParity before testing :|
+
+#define sizeOfReceivedByte 10 // for receiving, the startbit wont be counted into the program.
+// DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
+//      and looking at it after everything's come in, since there is no time before then.
 
 #define sizeOfSerializedByte 12
 #define sampleAmount 7
@@ -14,8 +17,7 @@ enum receiveBitStates {
   readingStartBit,
   checkingStartBit,
   fillingBuffer,
-  checkingData,
-  DBGidle
+  checkingData
 };
 
 enum digestBitsStates {
@@ -32,9 +34,9 @@ enum specialBits {
 };
 
 enum parityModeEnum {
-  noParityMode,
+  evenParityMode,
   oddParityMode,
-  evenParityMode
+  noParityMode
 };
 
 enum stopBitsEnum {
@@ -57,26 +59,22 @@ long interruptFreq = 16000000 / bitRate / sampleAmount;
 
 int startBitBuffer[sampleAmount];
 int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
-int receivedDataBits[8];
+unsigned char receivedDataBits[9];
 bool byteBufferFilled = false;
 
 int bytePlace = 0;
 int samplePlace = 0;
 int tempBit;
-int ReceivedByte;
 
 int receiveSwitch = waitingForStartBit;
 int digestSwitch = -1;
 int extraBits;
 
+// DBG - I don't think these are actually used...?
 // Used for checking bits
-const int amountOfSamplesUsed = sampleAmount / 4;
-unsigned char usedSamples[amountOfSamplesUsed];
-int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
-
-int sizeOfReceivedByte = 10 // for receiving, the startbit wont be counted into the program.
-// DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
-//      and looking at it after everything's come in, since there is no time before then.
+// const int amountOfSamplesUsed = sampleAmount / 4;
+// unsigned char usedSamples[amountOfSamplesUsed];
+// int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
 
 ISR(TIMER1_COMPA_vect) // Interrupt service routine: Timer 1 matches desired count.
 {
@@ -148,26 +146,28 @@ void loop()
     if (checkStartStopBits())
     {
       Serial.println("Packet detected.");
+
+      for (int i = 1; i <= 9; ++i) // Iterate over the data bits and the parity bit
+      {
+        receivedDataBits[i-1] = checkMajority(receivedByteBuffer[i]);
+      }
+
       if (parityMode != noParityMode)
       {
-        if (!checkParity())
+        if (checkParity())
         {
-          Serial.println("Incorrect parity.");
+          Serial.print(deserialize());
         }
         else
         {
-          for (int i = 1; i <= 8; ++i) // Iterate over the data bits
-          {
-            receivedDataBits[i-1] = checkMajority(receivedByteBuffer[i]);
-          }
-          deserialize();
+          Serial.println("Incorrect parity.");
         }
       }
-      else
-      {
-        checkMajority();
-        deserialize();
-      }
+      
+      Serial.print(deserialize());
+      
+      // Re-enable interrupts when everything is done.
+      // Should probably clear the buffer after finishing.
     }
     else
     {

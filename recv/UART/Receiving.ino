@@ -81,7 +81,7 @@ void UARTreceive()
       break;
   }
 }
-
+/*
 void deserializeCharacter()
 {
   // Does WAY too much. Checking majority and parity in a function called deserialize?
@@ -140,7 +140,7 @@ void deserializeCharacter()
       break;
   }
 }
-
+*/
 bool checkStartStopBits()
 {
   // Built around sampleAmount = 7 & samplesUsed = 3, and reading the start bit into the full buffer.
@@ -166,10 +166,8 @@ bool checkStartStopBits()
           usedSamples[2] = receivedByteBuffer[10][5];
           return checkMajority(usedSamples);
         }
-        else
-        {
-          return true;
-        }
+        
+        return true;
       }
     }
     else
@@ -186,10 +184,8 @@ bool checkStartStopBits()
           usedSamples[2] = receivedByteBuffer[11][5];
           return checkMajority(usedSamples);
         }
-        else
-        {
-          return true;
-        }
+        
+        return true;
       }
     }
   }
@@ -200,7 +196,21 @@ bool checkStartStopBits()
 
 bool checkParity()
 {
-  // Empty function
+  int ones = 0;
+
+  for (int i = 0; i <= 9; i++)
+  {
+    ones += receivedDataBits[i];
+  }
+
+  if ((ones % 2 == 1 && parityMode == oddParityMode) || (ones % 2 == 0 && parityMode == evenParityMode))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 bool checkMajority(int sampleArray[])
@@ -215,13 +225,20 @@ bool checkMajority(int sampleArray[])
 
   if (totalOnes >= 2)
   {
-    return 1;
+    return 1; // AKA true
   }
-  return 0;
+
+  return 0; // AKA false
 }
 
-void deserialize()
+unsigned char deserialize()
 {
-  // First bit that's checked is [1] in the received array and should be right most in the byte.
-  // use receivedDataBits
+  unsigned char deserializedChar = '\0';
+
+  for (int i = 7; i >= 0; i--)
+  {
+    deserializedChar |= (receivedDataBits[i] << i);
+  }
+
+  return deserializedChar;
 }
