@@ -1,4 +1,5 @@
 // RecieveInProgress, Send working but commented in ISR
+// Need to deserialize and checkParity before testing :|
 
 #define sizeOfSerializedByte 12
 #define sampleAmount 7
@@ -56,6 +57,7 @@ long interruptFreq = 16000000 / bitRate / sampleAmount;
 
 int startBitBuffer[sampleAmount];
 int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
+int receivedDataBits[8];
 bool byteBufferFilled = false;
 
 int bytePlace = 0;
@@ -142,12 +144,29 @@ void loop()
   else if (receiveSwitch == checkingData)
   {
     DBG_printBuffer();
+
     if (checkStartStopBits())
     {
       Serial.println("Packet detected.");
-      if (checkParity())
+      if (parityMode != noParityMode)
       {
-        
+        if (!checkParity())
+        {
+          Serial.println("Incorrect parity.");
+        }
+        else
+        {
+          for (int i = 1; i <= 8; ++i) // Iterate over the data bits
+          {
+            receivedDataBits[i-1] = checkMajority(receivedByteBuffer[i]);
+          }
+          deserialize();
+        }
+      }
+      else
+      {
+        checkMajority();
+        deserialize();
       }
     }
     else

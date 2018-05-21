@@ -219,3 +219,9 @@ bool checkMajority(int sampleArray[])
   }
   return 0;
 }
+
+void deserialize()
+{
+  // First bit that's checked is [1] in the received array and should be right most in the byte.
+  // use receivedDataBits
+}
