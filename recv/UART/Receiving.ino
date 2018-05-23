@@ -59,7 +59,7 @@ void UARTreceive()
         bytePlace = 0;
         receiveSwitch = checkingData; // Should allow for loop() to take over
         cli(); // Don't try to receive more while still working on this one.
-        digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
+        //digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
       }
       else if (samplePlace == sampleAmount)
       {
@@ -85,77 +85,13 @@ void UARTreceive()
 bool checkStartBit() // Hardcoded :confettiballs:
 {
   // check majority on startBitBuffer
-  unsigned char usedSamples[samplesUsed];
 
-  usedSamples[0] = startBitBuffer[3];
-  usedSamples[1] = startBitBuffer[4];
-  usedSamples[2] = startBitBuffer[5];
-  Serial.print("Check majority ");
-  int value = checkMajority(usedSamples);
-  return !value; // Want to have true on startbit found (0)
+  // int value = checkMajority(startBitBuffer);
+
+  return !checkMajority(startBitBuffer[3], startBitBuffer[4], startBitBuffer[5]); // Want to have true on startbit found (0)
 }
 
-/* Unused shit
-void deserializeCharacter()
-{
-  // Does WAY too much. Checking majority and parity in a function called deserialize?
-  switch(digestSwitch)
-  {
-    case checkingMajority:
-    	for (int i = 0; i < sizeOfReceivedByte; ++i)
-    	{
-    		ReceivedByte |= (int)checkMajority(receivedByteBuffer[i]) << bytePlace;
-    	}
-
-      bytePlace = 0;
-      receiveSwitch = 0;
-      digestSwitch = checkingParity;
-      break;
-
-    case checkingParity:
-      if (checkParity(ReceivedByte))
-      {
-        // Parity is correct, continue to deserializing
-        receiveSwitch = deserializing;
-      }
-      else
-      {
-        // Parity is incorrect. Notify user and reset
-        Serial.println("Parity error.");
-        digestSwitch = -1;
-      }
-      break;
-
-    case deserializing:
-      // Remove the stopbits and the parity bit if selected
-      extraBits = 1; // There is always 1 stopbit at the end, so that one will always be removed
-      if (parityMode != noParityMode)
-      {
-        extraBits++;
-      }
-
-      if (stopBits == twoStopbits)
-      {
-        extraBits++;
-      }
-      // Remove the bits that are not part of the data
-      ReceivedByte = ReceivedByte >> extraBits;
-      receiveSwitch = readyForReading;
-      break;
-
-    case readyForReading:
-      received = true;
-      digestSwitch++;
-      // Wait for the loop to read the character. Loop will continue the switch.
-      break;
-
-    default:
-      // do nothing
-      break;
-  }
-}
-*/
-bool checkStartStopBits()
+/*bool checkStartStopBits()
 {
   // Built around sampleAmount = 7 & samplesUsed = 3, and reading the start bit into the full buffer.
   
@@ -168,10 +104,7 @@ bool checkStartStopBits()
   // {
     if(parityMode == noParityMode)
     {
-      usedSamples[0] = receivedByteBuffer[9][3];
-      usedSamples[1] = receivedByteBuffer[9][4];
-      usedSamples[2] = receivedByteBuffer[9][5];
-      if (checkMajority(usedSamples))
+      if (checkMajority(receivedByteBuffer[9][3], receivedByteBuffer[9][4], receivedByteBuffer[9][5]))
       {
         if(stopBits == twoStopbits)
         {
@@ -206,7 +139,7 @@ bool checkStartStopBits()
   
   // No start bit or an incorrect number of stop bits detected, that was a mistake.
   return false;
-}
+}*/
 
 bool checkParity()
 {
@@ -227,23 +160,12 @@ bool checkParity()
   }
 }
 
-bool checkMajority(unsigned char sampleArray[])
+// This is basically the foolproof way to check it...
+bool checkMajority(unsigned char a, unsigned char b, unsigned char c)
 {
-  // Built around sampleAmount = 7 & samplesUsed = 3
-  // DBG
-  Serial.println("Majority: ");
-  unsigned char totalOnes = 0;
+  // Serial.println(totalOnes);
 
-  for (int i = 0; i <= 2; ++i)
-  {
-    Serial.print(sampleArray[i]);
-    totalOnes += sampleArray[i];
-    // DBG
-  }
-
-  Serial.println(totalOnes);
-
-  if (totalOnes >= 2)
+  if (a + b + c >= 2)
     return 1; // AKA true
 
   return 0; // AKA false
@@ -260,3 +182,4 @@ unsigned char deserialize()
 
   return deserializedChar;
 }
+

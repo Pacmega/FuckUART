@@ -58,7 +58,7 @@ const unsigned int stopBits = oneStopbit;
 
 long interruptFreq = 16000000 / bitRate / sampleAmount;
 
-int startBitBuffer[sampleAmount];
+unsigned char startBitBuffer[sampleAmount];
 int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
 unsigned char receivedDataBits[9];
 bool byteBufferFilled = false;
@@ -68,14 +68,8 @@ int samplePlace = 0;
 int tempBit;
 
 int receiveSwitch = waitingForStartBit;
-int digestSwitch = -1;
+// int digestSwitch = -1;
 int extraBits;
-
-// DBG - I don't think these are actually used...?
-// Used for checking bits
-// const int amountOfSamplesUsed = sampleAmount / 4;
-// unsigned char usedSamples[amountOfSamplesUsed];
-// int startOfUsedSamplesInBuffer = (sampleAmount / 2 - (sampleAmount / 8));
 
 ISR(TIMER1_COMPA_vect) // Interrupt service routine: Timer 1 matches desired count.
 {
@@ -87,16 +81,6 @@ void setup()
 {
   pinMode(sendPin, OUTPUT);
   pinMode(recvPin, INPUT);
-
-/*   if (parityMode != noParityMode)
-   {
-     // Joran: I don't think changing the value of a define is a thing, but correct me if I'm wrong.
-     sizeOfReceivedByte++;
-   }
-   if (stopBits == twoStopbits)
-   {
-     sizeOfReceivedByte++;
-   }*/
 
   Serial.begin(9600);
 
@@ -126,90 +110,81 @@ void loop()
 {
   // Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
   if (receiveSwitch == checkingStartBit)
+  {
+    if (checkStartBit())
     {
-      if (checkStartBit())
-      {
-        // startbit found
-        //Serial.println("Start filling the buffer");
-        receiveSwitch = fillingBuffer;
-        // start reading data
-      }
-      else
-      {
-        // The falling edge was an error. Reset process
-        //Serial.println("Falling edge bamboozle");
-        receiveSwitch = waitingForStartBit;
-      }
-        sei(); // Restart interrupts.
+      // startbit found
+      Serial.println("Start filling the buffer");
+      receiveSwitch = fillingBuffer;
+      // start reading data
     }
+    else
+    {
+      // The falling edge was an error. Reset process
+      Serial.println("Falling edge bamboozle");
+      receiveSwitch = waitingForStartBit;
+    }
+    sei(); // Restart interrupts.
+  }
   else if (receiveSwitch == checkingData)
   {
     Serial.println("checking data..");
     DBG_printBuffer();
 
-    if (checkStartStopBits())
+    if (true) // checkstart/stopbits
     {
       Serial.println("Packet detected.");
 
       for (int i = 1; i <= 9; ++i) // Iterate over the data bits and the parity bit
       {
-        receivedDataBits[i - 1] = checkMajority((unsigned char)receivedByteBuffer[i]);
+        unsigned char tempValue = checkMajority(receivedByteBuffer[i][3], receivedByteBuffer[i][4], receivedByteBuffer[i][5]);
+        receivedDataBits[i - 1] = tempValue;
+        Serial.print(tempValue);
+        Serial.print(" ");
       }
 
-      if (parityMode != noParityMode)
+      if (!checkParity())
       {
-        if (checkParity())
-        {
-          Serial.print(deserialize());
-        }
-        else
-        {
-          Serial.println("Incorrect parity.");
-        }
+        Serial.println("Incorrect parity");
+      }
+      else
+      {
+        Serial.print(deserialize());
       }
 
-      Serial.print(deserialize());
+      //clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
 
-      // Re-enable interrupts when everything is done.
-      // Should probably clear the buffer after finishing.
+      receiveSwitch = waitingForStartBit;
+
+      sei(); // Restart interrupts.
+
+      // End of DBG
+
+      // Shit
     }
-    else
-    {
-      Serial.println("Incorrect packet detected. Oops.");
-    }
 
-    //clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
+    // DBG: PortManipulation version of digitalRead(3);
+    //Serial.println((PIND & B00001000) >> 3);
 
-    receiveSwitch = waitingForStartBit;
+    /*
+      if (Serial.available() > 0 && !sending)
+      {
+      bufferByte = Serial.read();
+      Sending(bufferByte);
+      }
 
-    sei(); // Restart interrupts.
-
-    // End of DBG
-
-    // Shit
+      //byteReading();
+      deserializeCharacter();
+      if (received)
+      {
+      //Serial.print("ReceivedByte ");
+      Serial.println(ReceivedByte);
+      ReceivedByte = 0;
+      //receiveSwitch = flushing;
+      received = false;
+      }
+    */
   }
-
-  // DBG: PortManipulation version of digitalRead(3);
-  //Serial.println((PIND & B00001000) >> 3);
-
-  /*
-    if (Serial.available() > 0 && !sending)
-    {
-    bufferByte = Serial.read();
-    Sending(bufferByte);
-    }
-
-    //byteReading();
-    deserializeCharacter();
-    if (received)
-    {
-    //Serial.print("ReceivedByte ");
-    Serial.println(ReceivedByte);
-    ReceivedByte = 0;
-    //receiveSwitch = flushing;
-    received = false;
-    }
-  */
 }
 
 void clearBuffer(int bufferSize, unsigned char* array)
