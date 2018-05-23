@@ -24,7 +24,7 @@ void UARTreceive()
       if (tempBit == 0) // Falling edge
       {
         // Fucking wat
-        receiveSwitch = fillingBuffer;
+        receiveSwitch = readingStartBit;
       }
       break;
 
@@ -78,6 +78,7 @@ void UARTreceive()
 
     default:
       // Don't do anything
+      Serial.println("in default...");
       break;
   }
 }
@@ -198,7 +199,7 @@ bool checkParity()
 {
   int ones = 0;
 
-  for (int i = 0; i <= 9; i++)
+  for (int i = 0; i < 9; i++)
   {
     ones += receivedDataBits[i];
   }
@@ -213,7 +214,7 @@ bool checkParity()
   }
 }
 
-bool checkMajority(int sampleArray[])
+bool checkMajority(unsigned char sampleArray[])
 {
   // Built around sampleAmount = 7 & samplesUsed = 3
   int totalOnes = 0;
@@ -231,7 +232,7 @@ bool checkMajority(int sampleArray[])
   return 0; // AKA false
 }
 
-unsigned char deserialize()
+unsigned char deserialize() 
 {
   unsigned char deserializedChar = '\0';
 
