@@ -1,7 +1,7 @@
 // Receiving
 // RecieveInProgress, Send working but commented in ISR
 
-int sizeOfReceivedByte; // for receiving, the startbit wont be counted into the program.
+#define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
 // DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
 //      and looking at it after everything's come in, since there is no time before then.
 
@@ -59,6 +59,7 @@ const unsigned int stopBits = oneStopbit;
 long interruptFreq = 16000000 / bitRate / sampleAmount;
 
 int startBitBuffer[sampleAmount];
+int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
 unsigned char receivedDataBits[9];
 bool byteBufferFilled = false;
 
@@ -86,8 +87,8 @@ void setup()
 {
   pinMode(sendPin, OUTPUT);
   pinMode(recvPin, INPUT);
-/*
-   if (parityMode != noParityMode)
+
+/*   if (parityMode != noParityMode)
    {
      // Joran: I don't think changing the value of a define is a thing, but correct me if I'm wrong.
      sizeOfReceivedByte++;
@@ -96,20 +97,6 @@ void setup()
    {
      sizeOfReceivedByte++;
    }*/
-
-  // received byte stuff:
-  sizeOfReceivedByte = 10; // 8 data bits, 1 startbit and 1 stopbit
-  if (parityMode != noParityMode)
-  {
-    sizeOfReceivedByte++;
-  }
-  if (stopBits == twoStopbits)
-  {
-    sizeOfReceivedByte++;
-  }
-
-  int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
-
 
   Serial.begin(9600);
 
@@ -137,26 +124,25 @@ void setup()
 
 void loop()
 {
-  /* Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
-    if (receiveSwitch == checkingStartBit)
+  // Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
+  if (receiveSwitch == checkingStartBit)
     {
       if (checkStartBit())
       {
         // startbit found
-  
+        Serial.println("Start filling the buffer");
         receiveSwitch = fillingBuffer;
         // start reading data
       }
       else
       {
         // The falling edge was an error. Reset process
+        Serial.println("Falling edge bamboozle");
         receiveSwitch = waitingForStartBit;
       }
-  
-      sei(); // Restart interrupts.
+        sei(); // Restart interrupts.
     }
-  //  else */
-  if (receiveSwitch == checkingData)
+  else if (receiveSwitch == checkingData)
   {
     Serial.println("checking data..");
     DBG_printBuffer();
@@ -195,6 +181,8 @@ void loop()
     //clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
 
     receiveSwitch = waitingForStartBit;
+
+    sei(); // Restart interrupts.
 
     // End of DBG
 

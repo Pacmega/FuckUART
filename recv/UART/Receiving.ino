@@ -23,7 +23,6 @@ void UARTreceive()
     case waitingForStartBit:
       if (tempBit == 0) // Falling edge
       {
-        // Fucking wat
         receiveSwitch = readingStartBit;
       }
       break;
@@ -78,11 +77,25 @@ void UARTreceive()
 
     default:
       // Don't do anything
-      Serial.println("in default...");
+      //Serial.println("in default...");
       break;
   }
 }
-/*
+
+bool checkStartBit() // Hardcoded :confettiballs:
+{
+  // check majority on startBitBuffer
+  unsigned char usedSamples[samplesUsed];
+
+  usedSamples[0] = receivedByteBuffer[3];
+  usedSamples[1] = receivedByteBuffer[4];
+  usedSamples[2] = receivedByteBuffer[5];
+  Serial.print("Check majority ");
+  int value = checkMajority(usedSamples);
+  return !value; // Want to have true on startbit found (0)
+}
+
+/* Unused shit
 void deserializeCharacter()
 {
   // Does WAY too much. Checking majority and parity in a function called deserialize?
@@ -217,17 +230,25 @@ bool checkParity()
 bool checkMajority(unsigned char sampleArray[])
 {
   // Built around sampleAmount = 7 & samplesUsed = 3
-  int totalOnes = 0;
+  // DBG
+  Serial.println("Majority: ");
+  unsigned char totalOnes = 0;
 
-  for (int i = 3; i <= 5; ++i)
+  unsigned char* p;
+
+  for (int i = 0; i <= 2; ++i)
   {
+     
     totalOnes += sampleArray[i];
+    // DBG
+    // Serial.print(*p);
+    // Serial.print(" ");
   }
+
+  Serial.println(totalOnes);
 
   if (totalOnes >= 2)
-  {
     return 1; // AKA true
-  }
 
   return 0; // AKA false
 }
