@@ -148,7 +148,10 @@ void loop()
   //  else */
   if (receiveSwitch == checkingData)
   {
-    Serial.println("checking data..");
+    cli(); // Fuck your interrupts lol
+    digitalWrite(sendPin, LOW);
+    // Serial.print("E");
+    // Serial.println("checking data..");
     DBG_printBuffer();
 
     if (checkStartStopBits())

@@ -54,15 +54,15 @@ void UARTreceive()
       
       if (samplePlace == sampleAmount - 1 && bytePlace == sizeOfReceivedByte - 1)
       {
-      	// buffer filled
+      	cli(); // Don't try to receive more while still working on this data.
+        // buffer filled
         byteBufferFilled = true;
         receiveSwitch = checkingData; // Should allow for loop() to take over
-        cli(); // Don't try to receive more while still working on this data.
         samplePlace = 0;
         bytePlace = 0;
-        digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
+        // digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
       }
-      else if (samplePlace == sampleAmount)
+      else if (samplePlace == sampleAmount - 1)
       {
         // Sampleplace reached end. Restart on next bytePlace
         samplePlace = 0;
@@ -76,12 +76,13 @@ void UARTreceive()
       }
       break;
 
-    case checkingStartBit:
-      Serial.println("Checking startbit :thinking:");
-      break;
+    // case checkingStartBit:
+    //   Serial.println("Checking startbit :thinking:");
+    //   break;
 
     case checkingData:
-      Serial.println("Checking data, ISR should be off");
+      // cli();
+      digitalWrite(sendPin, HIGH);
       break;
 
     default:
