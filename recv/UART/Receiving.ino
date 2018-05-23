@@ -62,7 +62,7 @@ void UARTreceive()
         bytePlace = 0;
         // digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
       }
-      else if (samplePlace == sampleAmount - 1)
+      else if (samplePlace == sampleAmount)
       {
         // Sampleplace reached end. Restart on next bytePlace
         samplePlace = 0;

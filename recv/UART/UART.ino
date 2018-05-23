@@ -188,6 +188,7 @@ void loop()
     //clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
 
     receiveSwitch = waitingForStartBit;
+    sei();
 
     // End of DBG
 
