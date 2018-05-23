@@ -23,7 +23,7 @@ void UARTreceive()
     case waitingForStartBit:
       if (tempBit == 0) // Falling edge
       {
-        // Fucking wat
+        // Possibly temporary: instead of spending time between the start and data bits checking if it is a correct start bit, just read it in and check afterwards.
         receiveSwitch = fillingBuffer;
       }
       break;
@@ -56,10 +56,10 @@ void UARTreceive()
       {
       	// buffer filled
         byteBufferFilled = true;
+        receiveSwitch = checkingData; // Should allow for loop() to take over
+        cli(); // Don't try to receive more while still working on this data.
         samplePlace = 0;
         bytePlace = 0;
-        receiveSwitch = checkingData; // Should allow for loop() to take over
-        cli(); // Don't try to receive more while still working on this one.
         digestSwitch = checkingMajority; // The two lines above here are a bit I recently added. -Bas (also, this doesn't do anything anymore.)
       }
       else if (samplePlace == sampleAmount)
@@ -76,8 +76,17 @@ void UARTreceive()
       }
       break;
 
+    case checkingStartBit:
+      Serial.println("Checking startbit :thinking:");
+      break;
+
+    case checkingData:
+      Serial.println("Checking data, ISR should be off");
+      break;
+
     default:
       // Don't do anything
+      Serial.println("in default...");
       break;
   }
 }
@@ -157,36 +166,14 @@ bool checkStartStopBits()
       usedSamples[0] = receivedByteBuffer[9][3];
       usedSamples[1] = receivedByteBuffer[9][4];
       usedSamples[2] = receivedByteBuffer[9][5];
-      if (checkMajority(usedSamples))
-      {
-        if(stopBits == twoStopbits)
-        {
-          usedSamples[0] = receivedByteBuffer[10][3];
-          usedSamples[1] = receivedByteBuffer[10][4];
-          usedSamples[2] = receivedByteBuffer[10][5];
-          return checkMajority(usedSamples);
-        }
-        
-        return true;
-      }
+      return checkMajority(usedSamples);
     }
     else
     {
       usedSamples[0] = receivedByteBuffer[10][3];
       usedSamples[1] = receivedByteBuffer[10][4];
       usedSamples[2] = receivedByteBuffer[10][5];
-      if (checkMajority(usedSamples))
-      {
-        if(stopBits == twoStopbits)
-        {
-          usedSamples[0] = receivedByteBuffer[11][3];
-          usedSamples[1] = receivedByteBuffer[11][4];
-          usedSamples[2] = receivedByteBuffer[11][5];
-          return checkMajority(usedSamples);
-        }
-        
-        return true;
-      }
+      return checkMajority(usedSamples);
     }
   }
   
@@ -198,7 +185,7 @@ bool checkParity()
 {
   int ones = 0;
 
-  for (int i = 0; i <= 9; i++)
+  for (int i = 0; i < 9; i++)
   {
     ones += receivedDataBits[i];
   }
@@ -213,12 +200,12 @@ bool checkParity()
   }
 }
 
-bool checkMajority(int sampleArray[])
+bool checkMajority(unsigned char sampleArray[])
 {
   // Built around sampleAmount = 7 & samplesUsed = 3
   int totalOnes = 0;
 
-  for (int i = 3; i <= 5; ++i)
+  for (int i = 0; i <= 3; ++i)
   {
     totalOnes += sampleArray[i];
   }
@@ -231,7 +218,7 @@ bool checkMajority(int sampleArray[])
   return 0; // AKA false
 }
 
-unsigned char deserialize()
+unsigned char deserialize() 
 {
   unsigned char deserializedChar = '\0';
 

@@ -58,7 +58,7 @@ void setup()
 {
   pinMode(sendPin, OUTPUT);
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   cli(); // To be sure no interrupts top interrupts
 

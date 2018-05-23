@@ -1,8 +1,10 @@
+// Receiving
 // RecieveInProgress, Send working but commented in ISR
 
-#define sizeOfReceivedByte 10 // for receiving, the startbit wont be counted into the program.
+const int sizeOfReceivedByte = 11; // for receiving, the startbit wont be counted into the program.
 // DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
 //      and looking at it after everything's come in, since there is no time before then.
+// 8 data bits, 1 startbit, 1 parity bit and 1 stopbit
 
 #define sizeOfSerializedByte 12
 #define sampleAmount 7
@@ -58,7 +60,6 @@ const unsigned int stopBits = oneStopbit;
 long interruptFreq = 16000000 / bitRate / sampleAmount;
 
 int startBitBuffer[sampleAmount];
-int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
 unsigned char receivedDataBits[9];
 bool byteBufferFilled = false;
 
@@ -69,6 +70,8 @@ int tempBit;
 int receiveSwitch = waitingForStartBit;
 int digestSwitch = -1;
 int extraBits;
+
+int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
 
 // DBG - I don't think these are actually used...?
 // Used for checking bits
@@ -87,16 +90,18 @@ void setup()
   pinMode(sendPin, OUTPUT);
   pinMode(recvPin, INPUT);
 
-  if (parityMode != noParityMode)
-  {
-    sizeOfReceivedByte++;
-  }
-  if (stopBits == twoStopbits)
-  {
-    sizeOfReceivedByte++;
-  }
+  // Instead of changing the parity mode, hard code everything. Oops.
+  // if (parityMode != noParityMode)
+  // {
+  //   // Joran: I don't think changing the value of a define is a thing, but correct me if I'm wrong.
+  //   sizeOfReceivedByte++;
+  // }
+  // if (stopBits == twoStopbits)
+  // {
+  //   sizeOfReceivedByte++;
+  // }
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   cli(); // To be sure no interrupts top interrupts
 
@@ -116,31 +121,34 @@ void setup()
 
   sei(); // Allow interrupts
 
-  Serial.begin(9600);
+  // 1 is enough :joy:
+  //Serial.begin(9600);
 }
 
 void loop()
 {
-  // Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
-  if (receiveSwitch == checkingStartBit)
-  {
-    if (checkStartBit())
+  /* Buffer filled (should checkStartBit be in the ISR? Doesn't seem like it.)
+    if (receiveSwitch == checkingStartBit)
     {
-      // startbit found
-      
-      receiveSwitch = fillingBuffer;
-      // start reading data
+      if (checkStartBit())
+      {
+        // startbit found
+  
+        receiveSwitch = fillingBuffer;
+        // start reading data
+      }
+      else
+      {
+        // The falling edge was an error. Reset process
+        receiveSwitch = waitingForStartBit;
+      }
+  
+      sei(); // Restart interrupts.
     }
-    else 
-    {
-      // The falling edge was an error. Reset process
-      receiveSwitch = waitingForStartBit;
-    }
-
-    sei(); // Restart interrupts.
-  }
-  else if (receiveSwitch == checkingData)
+  //  else */
+  if (receiveSwitch == checkingData)
   {
+    Serial.println("checking data..");
     DBG_printBuffer();
 
     if (checkStartStopBits())
@@ -149,7 +157,7 @@ void loop()
 
       for (int i = 1; i <= 9; ++i) // Iterate over the data bits and the parity bit
       {
-        receivedDataBits[i-1] = checkMajority(receivedByteBuffer[i]);
+        receivedDataBits[i - 1] = checkMajority((unsigned char)receivedByteBuffer[i]);
       }
 
       if (parityMode != noParityMode)
@@ -163,9 +171,9 @@ void loop()
           Serial.println("Incorrect parity.");
         }
       }
-      
+
       Serial.print(deserialize());
-      
+
       // Re-enable interrupts when everything is done.
       // Should probably clear the buffer after finishing.
     }
@@ -173,8 +181,8 @@ void loop()
     {
       Serial.println("Incorrect packet detected. Oops.");
     }
-    
-    clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
+
+    //clearBuffer(sizeOfReceivedByte, receivedByteBuffer)
 
     receiveSwitch = waitingForStartBit;
 
@@ -185,24 +193,24 @@ void loop()
 
   // DBG: PortManipulation version of digitalRead(3);
   //Serial.println((PIND & B00001000) >> 3);
-  
+
   /*
-  if (Serial.available() > 0 && !sending)
-  {
+    if (Serial.available() > 0 && !sending)
+    {
     bufferByte = Serial.read();
     Sending(bufferByte);
-  }
+    }
 
-  //byteReading();
-  deserializeCharacter();
-  if (received)
-  {
+    //byteReading();
+    deserializeCharacter();
+    if (received)
+    {
     //Serial.print("ReceivedByte ");
     Serial.println(ReceivedByte);
     ReceivedByte = 0;
-    //receiveSwitch = flushing;	
+    //receiveSwitch = flushing;
     received = false;
-  }
+    }
   */
 }
 
