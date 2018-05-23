@@ -4,6 +4,7 @@
 #define sizeOfReceivedByte 11 // for receiving, the startbit wont be counted into the program.
 // DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
 //      and looking at it after everything's come in, since there is no time before then.
+// 1 + 8 + 1 + 1
 
 #define sizeOfSerializedByte 12
 #define sampleAmount 7

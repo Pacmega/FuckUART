@@ -23,7 +23,7 @@ void UARTreceive()
     case waitingForStartBit:
       if (tempBit == 0) // Falling edge
       {
-        receiveSwitch = readingStartBit;
+        receiveSwitch = fillingBuffer;
       }
       break;
 

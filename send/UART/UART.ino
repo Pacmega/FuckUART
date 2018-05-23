@@ -1,7 +1,7 @@
 // Send maybe working, receive broken
 
 #define sizeOfSerializedByte 12
-#define sampleAmount 7
+#define sampleAmount 9
 
 #define parityLocation 9
 #define parityOn 1
