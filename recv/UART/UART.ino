@@ -1,7 +1,8 @@
 // Receiving
 // RecieveInProgress, Send working but commented in ISR
 
-int sizeOfReceivedByte; // for receiving, the startbit wont be counted into the program.
+int sizeOfReceivedByte = 10; // for receiving, the startbit wont be counted into the program.
+// 8 data bits, 1 startbit and 1 stopbit
 // DBG: for now it is, because timing is fucking weird apparently. This allows for printing the start bit
 //      and looking at it after everything's come in, since there is no time before then.
 
@@ -86,21 +87,10 @@ void setup()
 {
   pinMode(sendPin, OUTPUT);
   pinMode(recvPin, INPUT);
-/*
-   if (parityMode != noParityMode)
-   {
-     // Joran: I don't think changing the value of a define is a thing, but correct me if I'm wrong.
-     sizeOfReceivedByte++;
-   }
-   if (stopBits == twoStopbits)
-   {
-     sizeOfReceivedByte++;
-   }*/
 
-  // received byte stuff:
-  sizeOfReceivedByte = 10; // 8 data bits, 1 startbit and 1 stopbit
   if (parityMode != noParityMode)
   {
+    // Joran: I don't think changing the value of a define is a thing, but correct me if I'm wrong.
     sizeOfReceivedByte++;
   }
   if (stopBits == twoStopbits)
@@ -109,7 +99,6 @@ void setup()
   }
 
   int receivedByteBuffer[sizeOfReceivedByte][sampleAmount];
-
 
   Serial.begin(9600);
 
