@@ -87,9 +87,9 @@ bool checkStartBit() // Hardcoded :confettiballs:
   // check majority on startBitBuffer
   unsigned char usedSamples[samplesUsed];
 
-  usedSamples[0] = receivedByteBuffer[3];
-  usedSamples[1] = receivedByteBuffer[4];
-  usedSamples[2] = receivedByteBuffer[5];
+  usedSamples[0] = startBitBuffer[3];
+  usedSamples[1] = startBitBuffer[4];
+  usedSamples[2] = startBitBuffer[5];
   Serial.print("Check majority ");
   int value = checkMajority(usedSamples);
   return !value; // Want to have true on startbit found (0)
@@ -160,12 +160,12 @@ bool checkStartStopBits()
   // Built around sampleAmount = 7 & samplesUsed = 3, and reading the start bit into the full buffer.
   
   unsigned char usedSamples[samplesUsed];
-  usedSamples[0] = receivedByteBuffer[0][3];
-  usedSamples[1] = receivedByteBuffer[0][4];
-  usedSamples[2] = receivedByteBuffer[0][5];
+  // usedSamples[0] = receivedByteBuffer[0][3];
+  // usedSamples[1] = receivedByteBuffer[0][4];
+  // usedSamples[2] = receivedByteBuffer[0][5];
 
-  if(!checkMajority(usedSamples)) // If checkmajority returns 0, startbit has been found and true will be returned.
-  {
+  // if(!checkMajority(usedSamples)) // If checkmajority returns 0, startbit has been found and true will be returned.
+  // {
     if(parityMode == noParityMode)
     {
       usedSamples[0] = receivedByteBuffer[9][3];
@@ -202,7 +202,7 @@ bool checkStartStopBits()
         return true;
       }
     }
-  }
+  //}
   
   // No start bit or an incorrect number of stop bits detected, that was a mistake.
   return false;
@@ -234,15 +234,11 @@ bool checkMajority(unsigned char sampleArray[])
   Serial.println("Majority: ");
   unsigned char totalOnes = 0;
 
-  unsigned char* p;
-
   for (int i = 0; i <= 2; ++i)
   {
-     
+    Serial.print(sampleArray[i]);
     totalOnes += sampleArray[i];
     // DBG
-    // Serial.print(*p);
-    // Serial.print(" ");
   }
 
   Serial.println(totalOnes);

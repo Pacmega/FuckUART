@@ -130,14 +130,14 @@ void loop()
       if (checkStartBit())
       {
         // startbit found
-        Serial.println("Start filling the buffer");
+        //Serial.println("Start filling the buffer");
         receiveSwitch = fillingBuffer;
         // start reading data
       }
       else
       {
         // The falling edge was an error. Reset process
-        Serial.println("Falling edge bamboozle");
+        //Serial.println("Falling edge bamboozle");
         receiveSwitch = waitingForStartBit;
       }
         sei(); // Restart interrupts.
