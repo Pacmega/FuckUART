@@ -27,6 +27,9 @@ void addStopBits(int firstStopbit)
 
 void addParity(unsigned char byteToSend)
 {
+  // After the start bit and the 8 data bits the parity, if any,
+  // is placed at position 9 in the array.
+
   int ones = countOnes(byteToSend);
 
   if (parityMode == oddParityMode)
