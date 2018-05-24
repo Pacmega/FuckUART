@@ -93,13 +93,13 @@ void Sending()
         //PORTD = B00000000;
         if (serializedByte[ArrayPosition] == 0)
         {
-          // PORTD = B00000000;
-          digitalWrite(sendPin, 0);
+          PORTD = B00000000;
+          //digitalWrite(sendPin, 0);
         }
         else
         {
-          // PORTD = B00001000;
-          digitalWrite(sendPin, 1);
+          PORTD = B00001000;
+          //digitalWrite(sendPin, 1);
         }
         ArrayPosition++;
         sendone = 0;

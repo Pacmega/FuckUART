@@ -1,6 +1,6 @@
 boolean DetectedFallingEdge()
 {
-  if (!FallingEdgeDetected && digitalRead(receivePin) == LOW)
+  if (!FallingEdgeDetected && digitalRead(ReceivePin) == LOW)
   {
     FallingEdgeDetected = true;
     DataArray[0] = zerobyte;
@@ -13,11 +13,11 @@ boolean DetectedFallingEdge()
 
 void TakeSample()
 {
-  if (digitalRead(receivePin) == LOW)
+  if (digitalRead(ReceivePin) == LOW)
   {
     SampleArray[SampleCounter] = 0;
   }
-  if (digitalRead(receivePin) == HIGH)
+  if (digitalRead(ReceivePin) == HIGH)
   {
     SampleArray[SampleCounter] = 1;
   }

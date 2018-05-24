@@ -1,6 +1,5 @@
 #define sizeOfSerializedByte 12
 unsigned char serializedByte[sizeOfSerializedByte];
-
 #define parityLocation 9
 #define parityOn 1
 #define parityOff 0
@@ -16,11 +15,13 @@ enum specialBits {
   disabledBit = 0b0
 };
 
+
 enum parityModeEnum {
   noParityMode,
   oddParityMode,
   evenParityMode
 };
+
 
 enum stopBitsEnum {
   oneStopbit,
@@ -30,8 +31,8 @@ enum stopBitsEnum {
 int parityMode = evenParityMode;
 int stopBits = twoStopbits;
 
-int receivePin = 3;
-int sendPin = 13;
+int ReceivePin = 4;
+int SendPin = 3;
 
 const int Baudrate = 9600;
 
@@ -51,17 +52,14 @@ byte zerobyte = 0x00;
 byte onebyte = 0x01;
 
 boolean FallingEdgeDetected = false;
-boolean doneENCRYPT         = false;
+boolean doneENCRYPT         =     false;
 
 void setup()
 {
-  pinMode(receivePin, INPUT);
-  pinMode(sendPin, OUTPUT);
-
-  digitalWrite(sendPin, LOW);
-
+  pinMode(ReceivePin, INPUT);
+  pinMode(SendPin, OUTPUT);
+  digitalWrite(SendPin, LOW);
   SetupInterupts();
-
   Serial.begin(Baudrate);
   PORTD = B00001000;
 }
