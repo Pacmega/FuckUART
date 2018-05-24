@@ -1,6 +1,7 @@
 // Main TODOs:
 // - interruptFreq?
 // - Varying messageSize based on settings
+// - Check BAS comments for more.
 
 #define sizeOfSerializedByte 12
 
@@ -30,8 +31,8 @@ enum stopBitsEnum {
   twoStopbits
 };
 
-int ReceivePin = 4;
-int SendPin = 3;
+const int recvPin = 3;
+const int sendPin = 13;
 
 const int MaxNumberOfCycles = 2;
 int CycleCounter = 0;
@@ -39,7 +40,7 @@ int CycleCounter = 0;
 const int sampleAmount = 8;
 int SampleCounter = 0;
 int SampleArray[sampleAmount];
-boolean TakenAllSamples = false;
+bool TakenAllSamples = false;
 
 int DataArrayCounter = 0;
 const int MaxArrayLength = 12;
@@ -47,7 +48,7 @@ unsigned char DataArray[MaxArrayLength];
 unsigned char serializedByte[sizeOfSerializedByte];
 
 // Settings
-const unsigned int bitRate = 9600; // (bitRate must be >= 1 and < 65536)
+const unsigned int bitRate = 9600; // (bitRate must be >= 1 and < 65536) BAS - unused
 const unsigned int parityMode = oddParityMode;
 const unsigned int stopBits = oneStopbit;
 
@@ -56,13 +57,13 @@ long interruptFreq = 16000000 / bitRate / sampleAmount; // BAS - Unused
 byte zerobyte = 0x00;
 byte onebyte = 0x01;
 
-boolean FallingEdgeDetected = false;
-boolean doneENCRYPT         = false;
+bool FallingEdgeDetected = false;
+bool doneENCRYPT         = false;
 
 void setup()
 {
-  pinMode(ReceivePin, INPUT);
-  pinMode(SendPin, OUTPUT);
+  pinMode(recvPin, INPUT);
+  pinMode(sendPin, OUTPUT);
   
   cli(); // To be sure no interrupts top interrupts
 
@@ -70,7 +71,7 @@ void setup()
   TCCR1B = 0; // Same for TCCR1B
   TCNT1  = 0; // initialize counter value to 0
 
-  // BAS - Wtf is this number? (it works at 2400 Hz)
+  // BAS - Baudrate of 2400? What other possibilities are there?
   OCR1A  = 6665; // Set compare match register for selected baud rate
 
   TCCR1B |= (1 << WGM12); // Turn on Clear Timer on Compare match mode
@@ -82,7 +83,7 @@ void setup()
   sei(); // Allow interrupts
 
   Serial.begin(9600);
-  PORTD = B00001000;
+  // PORTD = B00001000;
 }
 
 ISR(TIMER1_COMPA_vect)

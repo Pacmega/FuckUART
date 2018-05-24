@@ -76,11 +76,11 @@ void serialize(unsigned char byteToSend)
     addParity(byteToSend);
     addStopBits(10);
   }
-  for (int i = 0; i < 12; i++)
-  {
-    Serial.print(serializedByte[i]);
-  }
-  Serial.println(" ");
+  // for (int i = 0; i < 12; i++)
+  // {
+  //   Serial.print(serializedByte[i]);
+  // }
+  // Serial.println(" ");
   doneENCRYPT = true;
 }
 
@@ -93,16 +93,13 @@ void sending()
     {
       if (ArrayPosition != (sizeOfSerializedByte - 1))
       {
-        //PORTD = B00000000;
         if (serializedByte[ArrayPosition] == 0)
         {
-          PORTD = B00000000;
-          //digitalWrite(sendPin, 0);
+          PORTB &= B11011111; // Pin 13 set to LOW
         }
         else
         {
-          PORTD = B00001000;
-          //digitalWrite(sendPin, 1);
+          PORTB |= B00100000; // Pin 13 set to HIGH
         }
         ArrayPosition++;
         sendone = 0;
@@ -118,6 +115,10 @@ void sending()
     {
       sendone = sendone + 1;
     }
+  }
+  else
+  {
+    PORTB |= B00100000; // When idle, keep pin 13 high.
   }
 }
 

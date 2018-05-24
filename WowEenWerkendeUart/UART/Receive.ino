@@ -20,7 +20,7 @@ void receiving()
 
 boolean DetectedFallingEdge()
 {
-  if (!FallingEdgeDetected && digitalRead(ReceivePin) == LOW)
+  if (!FallingEdgeDetected && !digitalRead(recvPin))
   {
     FallingEdgeDetected = true;
     DataArray[0] = zerobyte;
@@ -32,13 +32,13 @@ boolean DetectedFallingEdge()
 
 void TakeSample()
 {
-  if (digitalRead(ReceivePin) == LOW)
-  {
-    SampleArray[SampleCounter] = 0;
-  }
-  if (digitalRead(ReceivePin) == HIGH)
+  if (readRecvPin())
   {
     SampleArray[SampleCounter] = 1;
+  }
+  else
+  {
+    SampleArray[SampleCounter] = 0;
   }
 }
 
@@ -107,4 +107,9 @@ void FixTheShit()
     DataArray[i] = DataArray[i + 1];
   }
   DataArray[11] = savebyte;
+}
+
+unsigned char readRecvPin() // Returns either 0 (false) or 1 (true)
+{
+  return ((PIND & B00001000) >> 3);
 }
