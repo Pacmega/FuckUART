@@ -1,3 +1,23 @@
+void receiving()
+{
+  if (DetectedFallingEdge())
+  {
+    if (SampleCounter == sampleAmount + 1 && !TakenAllSamples)
+    {
+      SampleCounter = 0;
+      TakenAllSamples = true;
+    }
+    else
+    {
+      if (!TakenAllSamples)
+      {
+        TakeSample();
+        SampleCounter++;
+      }
+    }
+  }
+}
+
 boolean DetectedFallingEdge()
 {
   if (!FallingEdgeDetected && digitalRead(ReceivePin) == LOW)
@@ -9,7 +29,6 @@ boolean DetectedFallingEdge()
   }
   return FallingEdgeDetected;
 }
-
 
 void TakeSample()
 {
@@ -34,9 +53,6 @@ byte CalculateSampleResult()
     return onebyte;
   }
 }
-
-
-
 
 void ConvertToChar()
 {

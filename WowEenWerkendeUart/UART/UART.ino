@@ -87,24 +87,8 @@ void setup()
 
 ISR(TIMER1_COMPA_vect)
 {
-  Sending();
-  
-  if (DetectedFallingEdge())
-  {
-    if (SampleCounter == sampleAmount + 1 && !TakenAllSamples)
-    {
-      SampleCounter = 0;
-      TakenAllSamples = true;
-    }
-    else
-    {
-      if (!TakenAllSamples)
-      {
-        TakeSample();
-        SampleCounter++;
-      }
-    }
-  }
+  sending();
+  receiving();
 }
 
 void loop()

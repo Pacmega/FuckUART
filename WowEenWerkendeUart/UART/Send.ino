@@ -85,7 +85,7 @@ void serialize(unsigned char byteToSend)
 }
 
 
-void Sending()
+void sending()
 {
   if (doneENCRYPT)
   {
