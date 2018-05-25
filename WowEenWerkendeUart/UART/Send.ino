@@ -1,3 +1,39 @@
+void sending()
+{
+  if (sendingData)
+  {
+    if (sendone == SendOneInNine)
+    {
+      if (ArrayPosition != (sizeOfSerializedByte - 1))
+      {
+        if (serializedByte[ArrayPosition] == 0)
+        {
+          PORTB &= B11011111; // Pin 13 set to LOW
+        }
+        else
+        {
+          PORTB |= B00100000; // Pin 13 set to HIGH
+        }
+        ArrayPosition++;
+        sendone = 0;
+      }
+      else
+      {
+        ArrayPosition = 0;
+        sendingData = false;
+      }
+    }
+    else
+    {
+      sendone = sendone + 1;
+    }
+  }
+  else
+  {
+    PORTB |= B00100000; // When idle, keep pin 13 high.
+  }
+}
+
 int countOnes(unsigned char itemToCount)
 {
   int ones;
@@ -27,8 +63,8 @@ void addStopBits(int firstStopbit)
 
 void addParity(unsigned char byteToSend)
 {
-  // After the start bit and the 8 data bits the parity, if any,
-  // is placed at position 9 in the array.
+  // After the start bit and the 8 data bits the parity, if any, is placed at position 9 in the array. (defined in UART.ino)
+  // This function is only called when there is a parity mode enabled, so we don't need to consider noParityMode.
 
   int ones = countOnes(byteToSend);
 
@@ -36,10 +72,12 @@ void addParity(unsigned char byteToSend)
   {
     if (ones % 2 == 0)
     {
+      // Even number of data 1's
       serializedByte[parityLocation] = parityOn;
     }
     else
     {
+      // Odd number of data 1's
       serializedByte[parityLocation] = parityOff;
     }
   }
@@ -53,6 +91,7 @@ void addParity(unsigned char byteToSend)
     }
     else
     {
+      // Even number of data 1's
       serializedByte[parityLocation] = parityOff;
     }
   }
@@ -60,7 +99,6 @@ void addParity(unsigned char byteToSend)
 
 void serialize(unsigned char byteToSend)
 {
-  //serializedByte = NULL;
   serializedByte[0] = startBit;
 
   for (int i = 0; i < 8; ++i)
@@ -76,49 +114,5 @@ void serialize(unsigned char byteToSend)
     addParity(byteToSend);
     addStopBits(10);
   }
-  // for (int i = 0; i < 12; i++)
-  // {
-  //   Serial.print(serializedByte[i]);
-  // }
-  // Serial.println(" ");
-  doneENCRYPT = true;
+  sendingData = true;
 }
-
-
-void sending()
-{
-  if (doneENCRYPT)
-  {
-    if (sendone == SendOneInNine)
-    {
-      if (ArrayPosition != (sizeOfSerializedByte - 1))
-      {
-        if (serializedByte[ArrayPosition] == 0)
-        {
-          PORTB &= B11011111; // Pin 13 set to LOW
-        }
-        else
-        {
-          PORTB |= B00100000; // Pin 13 set to HIGH
-        }
-        ArrayPosition++;
-        sendone = 0;
-      }
-      else
-      {
-        ArrayPosition = 0;
-        doneENCRYPT = false;
-       
-      }
-    }
-    else
-    {
-      sendone = sendone + 1;
-    }
-  }
-  else
-  {
-    PORTB |= B00100000; // When idle, keep pin 13 high.
-  }
-}
-

@@ -50,15 +50,21 @@ unsigned char serializedByte[sizeOfSerializedByte];
 // Settings
 const unsigned int bitRate = 9600; // (bitRate must be >= 1 and < 65536) BAS - unused
 const unsigned int parityMode = oddParityMode;
-const unsigned int stopBits = oneStopbit;
+const unsigned int stopBits = twoStopbits;
 
 long interruptFreq = 16000000 / bitRate / sampleAmount; // BAS - Unused
 
 byte zerobyte = 0x00;
 byte onebyte = 0x01;
 
-bool FallingEdgeDetected = false;
-bool doneENCRYPT         = false;
+bool receivingData = false;
+bool sendingData   = false;
+
+ISR(TIMER1_COMPA_vect)
+{
+  sending();
+  receiving();
+}
 
 void setup()
 {
@@ -83,25 +89,18 @@ void setup()
   sei(); // Allow interrupts
 
   Serial.begin(9600);
-  // PORTD = B00001000;
-}
-
-ISR(TIMER1_COMPA_vect)
-{
-  sending();
-  receiving();
 }
 
 void loop()
 {
-  if (DetectedFallingEdge())
+  if (detectedFallingEdge())
   {
-    sampleing();
+    sampling();
   }
-  if (!doneENCRYPT && Serial.available() > 0)
+
+  if (!sendingData && Serial.available() > 0)
   {
-    unsigned char data = Serial.read();
-    serialize(data);
+    serialize(Serial.read());
   }
 }
 
