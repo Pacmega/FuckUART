@@ -8,7 +8,6 @@ void UARTsend()
   {
     if (messageSize > currentBit)
     {
-    	// Should this be one longer, or is receive's timing just fucked?
       if (ReceivedBitSample == sampleAmount - 1) // MagicNumber.exe
       {
         if (serializedByte[currentBit] == HIGH)

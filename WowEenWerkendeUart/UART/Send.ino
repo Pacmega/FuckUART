@@ -2,30 +2,30 @@ void sending()
 {
   if (sendingData)
   {
-    if (sendone == SendOneInNine)
+    if (currentBit < (sizeOfSerializedByte - 1))
     {
-      if (ArrayPosition != (sizeOfSerializedByte - 1))
+      if (sendone == SendOneInNine)
       {
-        if (serializedByte[ArrayPosition] == 0)
-        {
-          PORTB &= B11011111; // Pin 13 set to LOW
-        }
-        else
+        if (serializedByte[currentBit] == HIGH)
         {
           PORTB |= B00100000; // Pin 13 set to HIGH
         }
-        ArrayPosition++;
+        else
+        {
+          PORTB &= B11011111; // Pin 13 set to LOW
+        }
+        currentBit++;
         sendone = 0;
       }
       else
       {
-        ArrayPosition = 0;
-        sendingData = false;
+        sendone++;
       }
     }
     else
     {
-      sendone = sendone + 1;
+      currentBit = 0;
+      sendingData = false;
     }
   }
   else

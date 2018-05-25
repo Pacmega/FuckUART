@@ -1,38 +1,37 @@
 void receiving()
 {
-  if (detectedFallingEdge())
+  if (receivingData)
   {
     if (SampleCounter == sampleAmount + 1 && !TakenAllSamples)
     {
       SampleCounter = 0;
       TakenAllSamples = true;
     }
-    else
+    else if (!TakenAllSamples)
     {
-      if (!TakenAllSamples)
-      {
-        takeSample();
-        SampleCounter++;
-      }
+      takeSample();
+      SampleCounter++;
     }
+  }
+  else
+  {
+    checkForFallingEdge();
   }
 }
 
-bool detectedFallingEdge()
+void checkForFallingEdge()
 {
-  if (!receivingData && !readRecvPin())
+  if (readRecvPin() == LOW)
   {
     receivingData = true;
-    DataArray[0] = zerobyte;
+    DataArray[0] = 0;
     DataArrayCounter++;
-    return true;
   }
-  return receivingData;
 }
 
 void takeSample()
 {
-  if (readRecvPin())
+  if (readRecvPin() == HIGH)
   {
     SampleArray[SampleCounter] = 1;
   }
@@ -42,28 +41,27 @@ void takeSample()
   }
 }
 
-byte calculateSampleResult()
+unsigned char calculateSampleResult()
 {
   // BAS - If it works, replace this by our own majority
   if ((SampleArray[0] + SampleArray[1] + SampleArray[2] + SampleArray[3] + SampleArray[4] + SampleArray[5] + SampleArray[6] + SampleArray[7] + SampleArray[8]) <= 5 )
   {
-    return zerobyte;
+    return 0;
   }
   else
   {
-    return onebyte;
+    return 1;
   }
 }
 
-void ConvertToChar()
+char convertToChar()
 {
   char receivedChar = '\0';
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < sampleAmount; i++)
   {
-    receivedChar = receivedChar << 1;
-    receivedChar = receivedChar | DataArray[8 - i];
+    receivedChar |= (DataArray[sampleAmount - i] << (7-i));
   }
-  Serial.print(receivedChar);
+  return receivedChar;
 }
 
 void sampling()
@@ -73,7 +71,7 @@ void sampling()
     if (DataArrayCounter == MaxArrayLength)
     {
       FixTheShit(); // BAS - Needs to be implemented somewhere else
-      ConvertToChar();
+      Serial.print(convertToChar());
       DataArrayCounter = 0;
       TakenAllSamples = false;
       receivingData = false;

@@ -12,7 +12,7 @@
 int sendone = 0;
 int SendOneInNine = 9;
 
-int ArrayPosition = 0;
+int currentBit = 0;
 
 enum specialBits {
   startBit = 0b0,
@@ -54,9 +54,6 @@ const unsigned int stopBits = twoStopbits;
 
 long interruptFreq = 16000000 / bitRate / sampleAmount; // BAS - Unused
 
-byte zerobyte = 0x00;
-byte onebyte = 0x01;
-
 bool receivingData = false;
 bool sendingData   = false;
 
@@ -93,7 +90,7 @@ void setup()
 
 void loop()
 {
-  if (detectedFallingEdge())
+  if (receivingData)
   {
     sampling();
   }
