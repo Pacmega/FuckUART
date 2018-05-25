@@ -9,7 +9,7 @@ void receiving()
     }
     else if (!TakenAllSamples)
     {
-      takeSample();
+      SampleArray[SampleCounter] = readRecvPin();
       SampleCounter++;
     }
   }
@@ -56,7 +56,7 @@ unsigned char calculateSampleResult()
 
 char convertToChar()
 {
-  char receivedChar = '\0';
+  char receivedChar = '\0'; // \0 is 0x00 in the ascii table.
   for (int i = 0; i < sampleAmount; i++)
   {
     receivedChar |= (DataArray[sampleAmount - i] << (7-i));
@@ -64,13 +64,15 @@ char convertToChar()
   return receivedChar;
 }
 
+// BAS - This is called sampling, but actually processes the data?
 void sampling()
 {
+  // BAS - This very general if statement should be possible to do in another way. Not sure yet how though.
   if (TakenAllSamples)
   {
     if (DataArrayCounter == MaxArrayLength)
     {
-      FixTheShit(); // BAS - Needs to be implemented somewhere else
+      FixTheShit(); // BAS - Needs to be implemented some other way
       Serial.print(convertToChar());
       DataArrayCounter = 0;
       TakenAllSamples = false;
@@ -85,9 +87,9 @@ void sampling()
   }
 }
 
+// BAS - Move this to a function that doesn't show this fix, this is far too obvious
 void FixTheShit()
 {
-  // BAS - Move this to a function that doesn't show this fix, but too obvious
   byte savebyte = DataArray[0];
   for (int i = 0; i < MaxArrayLength; i++)
   {

@@ -1,6 +1,7 @@
 // Main TODOs:
 // - interruptFreq?
 // - Varying messageSize based on settings
+// - TakenAllSamples should be easier to do (hint: "find in folder" in subl)
 // - Check BAS comments for more.
 
 #define sizeOfSerializedByte 12
