@@ -1,8 +1,8 @@
 // Main TODOs:
 // - interruptFreq?
 // - Varying messageSize based on settings
-// - TakenAllSamples should be easier to do (hint: "find in folder" in subl)
-// - Check BAS comments for more.
+// - takenAllSamples should be easier to do (hint: "find in folder" in subl) JORAN - edited this. please check.
+// - Check BAS comments for more. JORAN - done.sh
 
 #define sizeOfSerializedByte 12
 
@@ -10,8 +10,8 @@
 #define parityOn 1
 #define parityOff 0
 
-int sendone = 0;
-int SendOneInNine = 9;
+int sendOne = 0;
+int sendOneInNine = 9;
 
 int currentBit = 0;
 
@@ -35,17 +35,17 @@ enum stopBitsEnum {
 const int recvPin = 3;
 const int sendPin = 13;
 
-const int MaxNumberOfCycles = 2;
-int CycleCounter = 0;
+const int maxNumberOfCycles = 2;
+int cycleCounter = 0;
 
 const int sampleAmount = 8;
-int SampleCounter = 0;
-int SampleArray[sampleAmount];
-bool TakenAllSamples = false;
+int sampleCounter = 0;
+int sampleArray[sampleAmount];
+bool takenAllSamples = false;
 
-int DataArrayCounter = 0;
-const int MaxArrayLength = 12;
-unsigned char DataArray[MaxArrayLength];
+int dataArrayCounter = 0;
+const int maxArrayLength = 12;
+unsigned char dataArray[maxArrayLength];
 unsigned char serializedByte[sizeOfSerializedByte];
 
 // Settings
@@ -76,6 +76,7 @@ void setup()
   TCNT1  = 0; // initialize counter value to 0
 
   // BAS - Baudrate of 2400? What other possibilities are there?
+  // JORAN - Shouldn't we be using interruptFreq for this?
   OCR1A  = 6665; // Set compare match register for selected baud rate
 
   TCCR1B |= (1 << WGM12); // Turn on Clear Timer on Compare match mode
@@ -93,7 +94,7 @@ void loop()
 {
   if (receivingData)
   {
-    sampling();
+    processRead();
   }
 
   if (!sendingData && Serial.available() > 0)

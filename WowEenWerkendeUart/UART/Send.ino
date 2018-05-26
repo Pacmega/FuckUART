@@ -4,7 +4,7 @@ void sending()
   {
     if (currentBit < (sizeOfSerializedByte - 1))
     {
-      if (sendone == SendOneInNine)
+      if (sendOne == sendOneInNine)
       {
         if (serializedByte[currentBit] == HIGH)
         {
@@ -15,11 +15,11 @@ void sending()
           PORTB &= B11011111; // Pin 13 set to LOW
         }
         currentBit++;
-        sendone = 0;
+        sendOne = 0;
       }
       else
       {
-        sendone++;
+        sendOne++;
       }
     }
     else
@@ -63,7 +63,7 @@ void addStopBits(int firstStopbit)
 
 void addParity(unsigned char byteToSend)
 {
-  // After the start bit and the 8 data bits the parity, if any, is placed at position 9 in the array. (defined in UART.ino)
+  // After the startbit and the 8 data bits the parity, if any, is placed at position 9 in the array. (defined in UART.ino)
   // This function is only called when there is a parity mode enabled, so we don't need to consider noParityMode.
 
   int ones = countOnes(byteToSend);

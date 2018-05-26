@@ -1,16 +1,16 @@
 void receiving()
 {
-  if (receivingData)
+  if (receivingData) // Check if there is an anomily detected (data transfer)
   {
-    if (SampleCounter == sampleAmount + 1 && !TakenAllSamples)
+    if (sampleCounter == sampleAmount + 1 && !takenAllSamples) // If samplecounter has reached the end, set takenAllSamples to true
     {
-      SampleCounter = 0;
-      TakenAllSamples = true;
+      sampleCounter = 0;
+      takenAllSamples = true;
     }
-    else if (!TakenAllSamples)
+    else if (!takenAllSamples) // Continue sampling if samplecounter hasn't reached the end yet
     {
-      SampleArray[SampleCounter] = readRecvPin();
-      SampleCounter++;
+      sampleArray[sampleCounter] = readRecvPin();
+      sampleCounter++;
     }
   }
   else
@@ -24,78 +24,48 @@ void checkForFallingEdge()
   if (readRecvPin() == LOW)
   {
     receivingData = true;
-    DataArray[0] = 0;
-    DataArrayCounter++;
+    dataArray[0] = 0;
+    dataArrayCounter++;
   }
 }
 
-void takeSample()
+// To check majority, we'll use 3 characters. Could be more, but this should be fine.
+bool checkMajority(unsigned char a, unsigned char b, unsigned char c)
 {
-  if (readRecvPin() == HIGH)
-  {
-    SampleArray[SampleCounter] = 1;
-  }
-  else
-  {
-    SampleArray[SampleCounter] = 0;
-  }
-}
+  if (a + b + c >= 2)
+    return 1; // AKA true
 
-unsigned char calculateSampleResult()
-{
-  // BAS - If it works, replace this by our own majority
-  if ((SampleArray[0] + SampleArray[1] + SampleArray[2] + SampleArray[3] + SampleArray[4] + SampleArray[5] + SampleArray[6] + SampleArray[7] + SampleArray[8]) <= 5 )
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
+  return 0; // AKA false
 }
 
 char convertToChar()
 {
+  // convert the array into a character
   char receivedChar = '\0'; // \0 is 0x00 in the ascii table.
   for (int i = 0; i < sampleAmount; i++)
   {
-    receivedChar |= (DataArray[sampleAmount - i] << (7-i));
+    receivedChar |= (dataArray[sampleAmount - i] << (7-i));
   }
   return receivedChar;
 }
 
-// BAS - This is called sampling, but actually processes the data?
-void sampling()
+// Processes the data that's being read on the recvPin
+void processRead()
 {
-  // BAS - This very general if statement should be possible to do in another way. Not sure yet how though.
-  if (TakenAllSamples)
-  {
-    if (DataArrayCounter == MaxArrayLength)
+    if (dataArrayCounter == maxArrayLength && takenAllSamples) // Print the character after the dataArray has been filled
     {
-      FixTheShit(); // BAS - Needs to be implemented some other way
       Serial.print(convertToChar());
-      DataArrayCounter = 0;
-      TakenAllSamples = false;
+      dataArrayCounter = 0;
+      takenAllSamples = false;
       receivingData = false;
     }
-    else
+    else if (takenAllSamples) // Place the bit into the array after the majority has been checked
     {
-      DataArray[DataArrayCounter] = calculateSampleResult();
-      DataArrayCounter++;
-      TakenAllSamples = false;
+      // Don't have to move bits around when you set them on the correct place.
+      dataArray[maxArrayLength - dataArrayCounter] = checkMajority(sampleArray[3], sampleArray[4], sampleArray[5]);
+      dataArrayCounter++;
+      takenAllSamples = false;
     }
-  }
-}
-
-// BAS - Move this to a function that doesn't show this fix, this is far too obvious
-void FixTheShit()
-{
-  byte savebyte = DataArray[0];
-  for (int i = 0; i < MaxArrayLength; i++)
-  {
-    DataArray[i] = DataArray[i + 1];
-  }
-  DataArray[11] = savebyte;
 }
 
 unsigned char readRecvPin() // Returns either 0 or 1
