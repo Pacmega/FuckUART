@@ -48,7 +48,7 @@ unsigned char checkMajority()
   return 0;
 }
 
-// Processes the data that's being read on the recvPin 
+// Processes the data that's being read on the recvPin
 void processRead()
 {
   if (dataArrayCounter == maxArrayLength && takenAllSamples)

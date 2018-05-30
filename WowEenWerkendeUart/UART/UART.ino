@@ -1,9 +1,3 @@
-// Main TODOs:
-// - interruptFreq?
-// - Varying messageSize based on settings
-// - takenAllSamples should be easier to do (hint: "find in folder" in subl)
-// - Check BAS comments for more.
-
 #define sizeOfSerializedByte 12
 
 #define parityLocation 9
@@ -32,8 +26,8 @@ enum stopBitsEnum {
   twoStopbits
 };
 
-const int recvPin = 3; // BAS - remove after replacing pinMode with portmanipulation
-const int sendPin = 13; // BAS - remove after replacing pinMode with portmanipulation
+const int recvPin = 3;
+const int sendPin = 13;
 
 const int sampleAmount = 8;
 int sampleCounter = 0;
@@ -46,11 +40,11 @@ unsigned char dataArray[maxArrayLength];
 unsigned char serializedByte[sizeOfSerializedByte];
 
 // Settings
-const unsigned int bitRate = 9600; // (bitRate must be >= 1 and < 65536) BAS - unused
+const unsigned int bitRate = 65535; // (bitRate must be >= 1 and < 65536)
 const unsigned int parityMode = oddParityMode;
 const unsigned int stopBits = twoStopbits;
 
-long interruptFreq = 16000000 / bitRate / sampleAmount; // BAS - Unused
+long interruptFreq = 16000000 / bitRate;
 
 bool receivingData = false;
 bool sendingData   = false;
@@ -63,8 +57,8 @@ ISR(TIMER1_COMPA_vect)
 
 void setup()
 {
-  pinMode(recvPin, INPUT); // BAS - replace by portmanipulation
-  pinMode(sendPin, OUTPUT); // BAS - replace by portmanipulation
+  pinMode(recvPin, INPUT);
+  pinMode(sendPin, OUTPUT);
   
   cli(); // To be sure no interrupts top interrupts
 
@@ -72,8 +66,7 @@ void setup()
   TCCR1B = 0; // Same for TCCR1B
   TCNT1  = 0; // initialize counter value to 0
 
-  // BAS - Baudrate of 2400? What other possibilities are there?
-  OCR1A  = 6665; // Set compare match register for selected baud rate
+  OCR1A  = interruptFreq; // Set compare match register for selected baud rate
 
   TCCR1B |= (1 << WGM12); // Turn on Clear Timer on Compare match mode
 
@@ -83,7 +76,7 @@ void setup()
 
   sei(); // Allow interrupts
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 }
 
 void loop()
