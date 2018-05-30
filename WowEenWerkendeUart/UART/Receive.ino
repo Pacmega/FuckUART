@@ -2,15 +2,15 @@ void receiving()
 {
   if (receivingData)
   {
-    if (SampleCounter == sampleAmount + 1 && !TakenAllSamples)
+    if (sampleCounter == sampleAmount + 1 && !takenAllSamples)
     {
-      SampleCounter = 0;
-      TakenAllSamples = true;
+      sampleCounter = 0;
+      takenAllSamples = true;
     }
-    else if (!TakenAllSamples)
+    else if (!takenAllSamples)
     {
-      SampleArray[SampleCounter] = readRecvPin();
-      SampleCounter++;
+      sampleArray[sampleCounter] = readRecvPin();
+      sampleCounter++;
     }
   }
   else
@@ -24,8 +24,8 @@ void checkForFallingEdge()
   if (readRecvPin() == LOW)
   {
     receivingData = true;
-    DataArray[0] = 0;
-    DataArrayCounter++;
+    dataArray[0] = 0;
+    dataArrayCounter++;
   }
 }
 
@@ -33,24 +33,37 @@ void takeSample()
 {
   if (readRecvPin() == HIGH)
   {
-    SampleArray[SampleCounter] = 1;
+    sampleArray[sampleCounter] = 1;
   }
   else
   {
-    SampleArray[SampleCounter] = 0;
+    sampleArray[sampleCounter] = 0;
   }
 }
 
-unsigned char calculateSampleResult()
+unsigned char checkMajority()
 {
-  // BAS - If it works, replace this by our own majority
-  if ((SampleArray[0] + SampleArray[1] + SampleArray[2] + SampleArray[3] + SampleArray[4] + SampleArray[5] + SampleArray[6] + SampleArray[7] + SampleArray[8]) <= 5 )
-  {
-    return 0;
-  }
-  else
-  {
+  if (sampleArray[3] + sampleArray[4] + sampleArray[5] >= 2 )
     return 1;
+  return 0;
+}
+
+// Processes the data that's being read on the recvPin 
+void processRead()
+{
+  if (dataArrayCounter == maxArrayLength && takenAllSamples)
+  {
+    changingBitOrder(); 
+    Serial.print(convertToChar());
+    dataArrayCounter = 0;
+    takenAllSamples = false;
+    receivingData = false;
+  }
+  else if (takenAllSamples)
+  {
+    dataArray[dataArrayCounter] = checkMajority();
+    dataArrayCounter++;
+    takenAllSamples = false;
   }
 }
 
@@ -59,43 +72,20 @@ char convertToChar()
   char receivedChar = '\0'; // \0 is 0x00 in the ascii table.
   for (int i = 0; i < sampleAmount; i++)
   {
-    receivedChar |= (DataArray[sampleAmount - i] << (7-i));
+    receivedChar |= (dataArray[sampleAmount - i] << (7-i));
   }
   return receivedChar;
 }
-
-// BAS - This is called sampling, but actually processes the data?
-void sampling()
+ 
+// For some strange reason, our first bit is always placed in the position of the last...
+void changingBitOrder()
 {
-  // BAS - This very general if statement should be possible to do in another way. Not sure yet how though.
-  if (TakenAllSamples)
+  byte savebyte = dataArray[0];
+  for (int i = 0; i < maxArrayLength; i++)
   {
-    if (DataArrayCounter == MaxArrayLength)
-    {
-      FixTheShit(); // BAS - Needs to be implemented some other way
-      Serial.print(convertToChar());
-      DataArrayCounter = 0;
-      TakenAllSamples = false;
-      receivingData = false;
-    }
-    else
-    {
-      DataArray[DataArrayCounter] = calculateSampleResult();
-      DataArrayCounter++;
-      TakenAllSamples = false;
-    }
+    dataArray[i] = dataArray[i + 1];
   }
-}
-
-// BAS - Move this to a function that doesn't show this fix, this is far too obvious
-void FixTheShit()
-{
-  byte savebyte = DataArray[0];
-  for (int i = 0; i < MaxArrayLength; i++)
-  {
-    DataArray[i] = DataArray[i + 1];
-  }
-  DataArray[11] = savebyte;
+  dataArray[11] = savebyte;
 }
 
 unsigned char readRecvPin() // Returns either 0 or 1

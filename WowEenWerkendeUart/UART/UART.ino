@@ -1,7 +1,7 @@
 // Main TODOs:
 // - interruptFreq?
 // - Varying messageSize based on settings
-// - TakenAllSamples should be easier to do (hint: "find in folder" in subl)
+// - takenAllSamples should be easier to do (hint: "find in folder" in subl)
 // - Check BAS comments for more.
 
 #define sizeOfSerializedByte 12
@@ -11,7 +11,7 @@
 #define parityOff 0
 
 int sendone = 0;
-int SendOneInNine = 9;
+int sendOneInNine = 9;
 
 int currentBit = 0;
 
@@ -32,20 +32,17 @@ enum stopBitsEnum {
   twoStopbits
 };
 
-const int recvPin = 3;
-const int sendPin = 13;
-
-const int MaxNumberOfCycles = 2;
-int CycleCounter = 0;
+const int recvPin = 3; // BAS - remove after replacing pinMode with portmanipulation
+const int sendPin = 13; // BAS - remove after replacing pinMode with portmanipulation
 
 const int sampleAmount = 8;
-int SampleCounter = 0;
-int SampleArray[sampleAmount];
-bool TakenAllSamples = false;
+int sampleCounter = 0;
+int sampleArray[sampleAmount];
+bool takenAllSamples = false;
 
-int DataArrayCounter = 0;
-const int MaxArrayLength = 12;
-unsigned char DataArray[MaxArrayLength];
+int dataArrayCounter = 0;
+const int maxArrayLength = 12;
+unsigned char dataArray[maxArrayLength];
 unsigned char serializedByte[sizeOfSerializedByte];
 
 // Settings
@@ -66,8 +63,8 @@ ISR(TIMER1_COMPA_vect)
 
 void setup()
 {
-  pinMode(recvPin, INPUT);
-  pinMode(sendPin, OUTPUT);
+  pinMode(recvPin, INPUT); // BAS - replace by portmanipulation
+  pinMode(sendPin, OUTPUT); // BAS - replace by portmanipulation
   
   cli(); // To be sure no interrupts top interrupts
 
@@ -93,7 +90,7 @@ void loop()
 {
   if (receivingData)
   {
-    sampling();
+    processRead();
   }
 
   if (!sendingData && Serial.available() > 0)

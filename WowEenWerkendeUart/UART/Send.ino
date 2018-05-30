@@ -4,7 +4,7 @@ void sending()
   {
     if (currentBit < (sizeOfSerializedByte - 1))
     {
-      if (sendone == SendOneInNine)
+      if (sendone == sendOneInNine)
       {
         if (serializedByte[currentBit] == HIGH)
         {
